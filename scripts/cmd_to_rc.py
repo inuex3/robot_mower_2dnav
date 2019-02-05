@@ -11,23 +11,20 @@ class Publishsers():
     def __init__(self):
         # Publisherを作成
         self.publisher = rospy.Publisher('/mavros/rc/override', OverrideRCIn, queue_size = 1)
-        #self.max_x = rospy.get_param("~coverage_spacing", 0.4)
-        #self.min_x = rospy.get_param("~coverage_spacing", 0.4)
-        self.max_vel_theta = 0.3#= rospy.get_param("~coverage_spacing", 0.4)
         # messageの型を作成
         self.RC_msg = OverrideRCIn()
         self.cmd_vel = Twist()
-        self.current_time = rospy.get_time()
+        self.current_time = rospy.get_time()+0.1
         self.prev_time = rospy.get_time()
         self.prev_odom = Odometry()
         self.P_gain_x = 200
-        self.P_gain_theta = 350
+        self.P_gain_theta = 200
 
     def make_msg(self, cmd_vel, odom):
         # 処理を書く
         self.current_time = rospy.get_time()
-        if ((self.current_time - self.prev_time) > 0.5):
-            self.RC_msg.channels = [0, 0, 0, 0, 0, 0, 0, 0] #1:steering,2:thrust
+        if ((self.current_time - self.prev_time) == 0.0):
+            pass
         else: 
             self.prev_odom.pose.pose.orientation.w = - self.prev_odom.pose.pose.orientation.w
             orientation_diff = tf.transformations.quaternion_multiply((odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w),(self.prev_odom.pose.pose.orientation.x, self.prev_odom.pose.pose.orientation.y, self.prev_odom.pose.pose.orientation.z, self.prev_odom.pose.pose.orientation.w))       
@@ -38,10 +35,17 @@ class Publishsers():
                 theta = -50
             elif (normalized_vel_theta[2] == 0):
                 theta = 0
-            self.RC_msg.channels = [1500 - theta - (cmd_vel.angular.z - normalized_vel_theta[2]/((self.current_time - self.prev_time)*self.max_vel_theta))*self.P_gain_theta, 1400 - cmd_vel.linear.x*self.P_gain_theta, 0, 0, 0, 0, 0, 0] #1:steering,2:thrust
+            if (cmd_vel.linear.x > 0):
+                x = 50
+            elif (cmd_vel.linear.x < 0):
+                x = -50
+            elif (cmd_vel.linear.x == 0):
+                x = 0                
+            self.RC_msg.channels = [1500 - theta - (cmd_vel.angular.z - normalized_vel_theta[2]/((self.current_time - self.prev_time)*self.max_vel_theta))*self.P_gain_theta, 1500 - x - cmd_vel.linear.x*self.P_gain_theta, 0, 0, 0, 0, 0, 0] #1:steering,2:thrust
             #print("cmd"+str(cmd_vel.angular.z))
             #print("vel"+str(normalized_vel_theta[2]/(self.current_time - self.prev_time)))
-            print("diff"+str(cmd_vel.angular.z-normalized_vel_theta[2]/(self.current_time - self.prev_time)))
+            #print("diff"+str(cmd_vel.angular.z-normalized_vel_theta[2]/(self.current_time - self.prev_time)))
+            print("RC"+str(self.RC_msg.channels))
         self.prev_odom = odom
         self.prev_time = self.current_time       
         self.publisher.publish(self.RC_msg)
