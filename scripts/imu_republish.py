@@ -13,7 +13,7 @@ def callback_imu(Imu):
     e = tf.transformations.euler_from_quaternion((Imu.orientation.x,Imu.orientation.y,Imu.orientation.z,Imu.orientation.w))
     Imu.orientation.x,Imu.orientation.y,Imu.orientation.z,Imu.orientation.w = tf.transformations.quaternion_from_euler(-e[0], e[1], e[2])
     Imu.angular_velocity.x, Imu.linear_acceleration.y = -Imu.angular_velocity.x, -Imu.linear_acceleration.y
-    #print(Imu)
+    print(Imu)
     pub.publish(Imu)
     
 def listen():
