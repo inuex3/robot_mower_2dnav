@@ -1,0 +1,15 @@
+<package>
+  <description brief="robot_mower_2dnav">
+
+     robot_mower_2dnav
+
+  </description>
+  <author>ubuntu</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/robot_mower_2dnav</url>
+  <depend package="move_base"/>
+
+</package>
+
+
