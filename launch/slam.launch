@@ -89,7 +89,7 @@
         <param name="_publish_tf" type="bool" value="false" />
         <param name="_world_frame" type="string" value="enu" />
         <remap from="/imu/data_raw" to="/camera1/imu"/>
-        <remap from="/imu/data" to="/camera1/imu/data"/>
+        <remap from="/imu/data" to="/imu/data"/>
     </node>
 
     <include file="$(find robot_localization)/launch/ukf_template.launch"/>

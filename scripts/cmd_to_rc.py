@@ -41,7 +41,7 @@ class Publishsers():
                 x = -50
             elif (cmd_vel.linear.x == 0):
                 x = 0                
-            self.RC_msg.channels = [1500 - theta - (cmd_vel.angular.z - normalized_vel_theta[2]/((self.current_time - self.prev_time)*self.max_vel_theta))*self.P_gain_theta, 1500 - x - cmd_vel.linear.x*self.P_gain_theta, 0, 0, 0, 0, 0, 0] #1:steering,2:thrust
+            self.RC_msg.channels = [1500 + theta + (cmd_vel.angular.z - normalized_vel_theta[2]/((self.current_time - self.prev_time)*self.max_vel_theta))*self.P_gain_theta, 1500 - x - cmd_vel.linear.x*self.P_gain_theta, 0, 0, 0, 0, 0, 0] #1:steering,2:thrust
             #print("cmd"+str(cmd_vel.angular.z))
             #print("vel"+str(normalized_vel_theta[2]/(self.current_time - self.prev_time)))
             #print("diff"+str(cmd_vel.angular.z-normalized_vel_theta[2]/(self.current_time - self.prev_time)))
