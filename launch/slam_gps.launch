@@ -107,7 +107,8 @@
 
       <param name="odom0" value="/vo"/>
       <param name="odom1" value="/odometry/gps"/>
-      <param name="imu0" value="/camera1/imu"/>
+      <param name="imu0" value="/imu/data"/>
+      <param name="imu1" value="/camera1/imu"/>
 
       <!-- The order of the values is x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az. -->
       <rosparam param="odom0_config">[true, true, false,
@@ -127,21 +128,30 @@
                                      false, false, false,
                                      false,  false,  true,
                                      false,  false,  false] </rosparam>
+
+      <rosparam param="imu0_config">[false, false, false,
+                                     false, false, false,
+                                     false, false, false,
+                                     false,  false,  true,
+                                     false,  false,  false] </rosparam>
       
       <param name="odom0_differential" value="false"/>
       <param name="odom1_differential" value="false"/>
+      <param name="imu0_differential" value="false"/>
       <param name="imu0_differential" value="false"/>
 
       <param name="odom0_relative" value="true"/>
       <param name="odom1_relative" value="false"/>
       <param name="imu0_relative" value="true"/>
+      <param name="imu1_relative" value="true"/>
 
       <param name="print_diagnostics" value="false"/>
 
       <!-- ======== ADVANCED PARAMETERS ======== -->
-      <param name="odom0_queue_size" value="5"/>
+      <param name="odom0_queue_size" value="15"/>
       <param name="odom1_queue_size" value="5"/>
       <param name="imu0_queue_size" value="50"/> 
+      <param name="imu1_queue_size" value="50"/> 
 
       <!-- The values are ordered as x, y, z, roll, pitch, yaw, vx, vy, vz,
            vroll, vpitch, vyaw, ax, ay, az. -->
