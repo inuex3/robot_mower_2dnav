@@ -14,6 +14,7 @@ import numpy as np
 from darknet_ros_msgs.msg import BoundingBoxes,BoundingBox
 import cv2
 import math
+import tf
 
 
 class Publishsers():
@@ -32,7 +33,7 @@ class Publishsers():
         # Add point obstacle
         self.obstacle_msg = ObstacleArrayMsg() 
         self.obstacle_msg.header.stamp = rospy.Time.now()
-        self.obstacle_msg.header.frame_id = "camera_link" # CHANGE HERE: odom/map
+        self.obstacle_msg.header.frame_id = Image.header.frame_id # CHANGE HERE: odom/map
         #self.marker_data = Marker()
         self.marker_data = MarkerArray()
         self.rate = rospy.Rate(25)        
@@ -48,56 +49,28 @@ class Publishsers():
                 try:
                     self.detected_area = self.image[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
                     distance_x = np.median(self.detected_area)/1000
-                    distance_y = - distance_x * (camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]**(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1)
-                    angle_x = math.atan(camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]**(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1)  
+                    tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]**(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1
+                    distance_y = - distance_x * tan_angle_x
+                    angle_x = math.atan(tan_angle_x)  
                     # Add point obstacle
                     self.obstacle_msg.obstacles.append(ObstacleMsg())
                     self.obstacle_msg.obstacles[i].id = i
                     self.obstacle_msg.obstacles[i].polygon.points = [Point32()]
-                    self.obstacle_msg.obstacles[i].polygon.points[0].x = distance_x
-                    self.obstacle_msg.obstacles[i].polygon.points[0].y = distance_y
-                    self.obstacle_msg.obstacles[i].polygon.points[0].z = 0
+                    self.obstacle_msg.obstacles[i].polygon.points[0].x = -distance_y
+                    self.obstacle_msg.obstacles[i].polygon.points[0].y = 0
+                    self.obstacle_msg.obstacles[i].polygon.points[0].z = distance_x
                     self.obstacle_msg.obstacles[i].radius = 0.15
                     self.marker_data.markers.append(Marker())
-                    self.marker_data.markers[i].header.stamp = rospy.Time.now()        
-                    self.marker_data.markers[i].header.frame_id = "map"
-                    self.marker_data.markers[i].ns = "basic_shapes"
-                    self.marker_data.markers[i].id = i
-                    print(i)
+                    self.marker_data.markers[i].header.stamp, self.marker_data.markers[i].header.frame_id = rospy.Time.now(), Image.header.frame_id     
+                    self.marker_data.markers[i].ns, self.marker_data.markers[i].id = "basic_shapes", i
+                    #print(tf.transformations.quaternion_from_euler(0.0, -math.pi/2, -math.pi/2))
                     self.marker_data.markers[i].action = Marker.ADD
-                    self.marker_data.markers[i].pose.position.x = distance_x
-                    self.marker_data.markers[i].pose.position.y = distance_y
-                    self.marker_data.markers[i].pose.position.z = 0.0
-                    self.marker_data.markers[i].pose.orientation.x=0.0
-                    self.marker_data.markers[i].pose.orientation.y=0.0
-                    self.marker_data.markers[i].pose.orientation.z=1.0
-                    self.marker_data.markers[i].pose.orientation.w=0.0
-                    self.marker_data.markers[i].color.r = 1.0
-                    self.marker_data.markers[i].color.g = 0.0
-                    self.marker_data.markers[i].color.b = 0.0
-                    self.marker_data.markers[i].color.a = 1.0
-                    self.marker_data.markers[i].scale.x = 0.15
-                    self.marker_data.markers[i].scale.y = 0.15
-                    self.marker_data.markers[i].scale.z = 1
-                    self.marker_data.markers[i].lifetime = self.now - self.prev
+                    self.marker_data.markers[i].pose.position.x, self.marker_data.markers[i].pose.position.y, self.marker_data.markers[i].pose.position.z = -distance_y, 0,distance_x
+                    self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= -0.5, -0.5, -0.5, 0.5
+                    self.marker_data.markers[i].color.r, self.marker_data.markers[i].color.g, self.marker_data.markers[i].color.b, self.marker_data.markers[i].color.a = 0, 1.0, 1.0, 1.0
+                    self.marker_data.markers[i].scale.x, self.marker_data.markers[i].scale.y, self.marker_data.markers[i].scale.z = 0.15,  0.15, 1
                     self.marker_data.markers[i].type = 3
-                    """
-                    self.marker_data.action = Marker.ADD
-                    self.marker_data.pose.position.x = distance_x
-                    self.marker_data.pose.position.y = distance_y
-                    self.marker_data.pose.position.z = 0.0
-                    self.marker_data.pose.orientation.x=0.0
-                    self.marker_data.pose.orientation.y=0.0
-                    self.marker_data.pose.orientation.z=1.0
-                    self.marker_data.pose.orientation.w=0.0
-                    self.marker_data.color.r = 1.0
-                    self.marker_data.color.g = 0.0
-                    self.marker_data.color.b = 0.0
-                    self.marker_data.color.a = 1.0
-                    self.marker_data.scale.x = 1
-                    self.marker_data.scale.y = 1
-                    self.marker_data.scale.z = 1
-                    """
+                    self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/tree2.stl"
                     rate = rospy.Rate(7)
                     #angle_y = arctan(camera_param[1][0]*center_x+camera_param[1][1]*center_y+camera_param[1][2]*1)
                     #self.detected_area.flags.writeable = True
@@ -109,14 +82,9 @@ class Publishsers():
                     i += 1
                 except CvBridgeError as e:
                         pass
-        #print("time difference" + str(Image.header.stamp - detection_data.header.stamp))
-        #print(rospy.Time.now()-self.timebefore)
-        self.prev = self.now
-        
 
     def send_msg(self):
         # messageを送
-        print("OK")
         self.publisher.publish(self.obstacle_msg)
         self.marker_publisher.publish(self.marker_data)
 
@@ -138,7 +106,7 @@ class Subscribe_publishers():
         camera_parameter_org = np.reshape(camera_parameter_org, (3, 3))
         self.camera_parameter = np.linalg.inv(camera_parameter_org)
         print ("Camera parameter:")
-        print (self.camera_parameter)
+        print (camera_parameter_org)
         self.camera_param_subscriber.unregister()
 
     def bounding_boxes_callback(self, depth_image, detection_data):
