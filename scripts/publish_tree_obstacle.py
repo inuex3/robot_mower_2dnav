@@ -64,14 +64,14 @@ class Publishsers():
                     self.marker_data.markers[i].header.stamp, self.marker_data.markers[i].header.frame_id = rospy.Time.now(), Image.header.frame_id     
                     self.marker_data.markers[i].ns, self.marker_data.markers[i].id = "basic_shapes", i
                     #print(tf.transformations.quaternion_from_euler(0.0, -math.pi/2, -math.pi/2))
+                    #print(tf.transformations.quaternion_from_euler(0.0, 0, 0))
                     self.marker_data.markers[i].action = Marker.ADD
                     self.marker_data.markers[i].pose.position.x, self.marker_data.markers[i].pose.position.y, self.marker_data.markers[i].pose.position.z = -distance_y, 0,distance_x
                     self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= -0.5, -0.5, -0.5, 0.5
                     self.marker_data.markers[i].color.r, self.marker_data.markers[i].color.g, self.marker_data.markers[i].color.b, self.marker_data.markers[i].color.a = 0, 1.0, 1.0, 1.0
-                    self.marker_data.markers[i].scale.x, self.marker_data.markers[i].scale.y, self.marker_data.markers[i].scale.z = 0.15,  0.15, 1
-                    self.marker_data.markers[i].type = 3
-                    self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/tree2.stl"
-                    rate = rospy.Rate(7)
+                    self.marker_data.markers[i].scale.x, self.marker_data.markers[i].scale.y, self.marker_data.markers[i].scale.z = 1, 1, 1
+                    self.marker_data.markers[i].type = 2
+                    self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/hades.stl"
                     #angle_y = arctan(camera_param[1][0]*center_x+camera_param[1][1]*center_y+camera_param[1][2]*1)
                     #self.detected_area.flags.writeable = True
                     #self.detected_area = np.where(self.detected_area < np.percentile(self.detected_area[np.nonzero(self.detected_area)], 40), 0, self.detected_area)
