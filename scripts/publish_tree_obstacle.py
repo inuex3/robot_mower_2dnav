@@ -12,6 +12,7 @@ from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import PolygonStamped, Point32
 import numpy as np
 from darknet_ros_msgs.msg import BoundingBoxes,BoundingBox
+from rtabmap_ros.srv import ResetPose
 import cv2
 import math
 import tf
@@ -22,6 +23,7 @@ class Publishsers():
         # Publisherを作成
         self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/detected_tree", MarkerArray, queue_size = 1)
+        self.reset_pose = rospy.ServiceProxy('/rtabmap/reset_odom_to_pose', ResetPose)
         #self.marker_publisher = rospy.Publisher("/detected_tree", Marker, queue_size = 1)
         self.now = rospy.get_rostime()
         self.prev = rospy.get_rostime()
@@ -63,15 +65,21 @@ class Publishsers():
                     self.marker_data.markers.append(Marker())
                     self.marker_data.markers[i].header.stamp, self.marker_data.markers[i].header.frame_id = rospy.Time.now(), Image.header.frame_id     
                     self.marker_data.markers[i].ns, self.marker_data.markers[i].id = "basic_shapes", i
-                    #print(tf.transformations.quaternion_from_euler(0.0, -math.pi/2, -math.pi/2))
-                    #print(tf.transformations.quaternion_from_euler(0.0, 0, 0))
+                    #print(tf.transformations.quaternion_from_euler(-math.pi/2, 0, -math.pi/2))
+                    print(tf.transformations.quaternion_from_euler(math.pi/2, math.pi/2, -math.pi/2))
                     self.marker_data.markers[i].action = Marker.ADD
                     self.marker_data.markers[i].pose.position.x, self.marker_data.markers[i].pose.position.y, self.marker_data.markers[i].pose.position.z = -distance_y, 0,distance_x
-                    self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= -0.5, -0.5, -0.5, 0.5
-                    self.marker_data.markers[i].color.r, self.marker_data.markers[i].color.g, self.marker_data.markers[i].color.b, self.marker_data.markers[i].color.a = 0, 1.0, 1.0, 1.0
-                    self.marker_data.markers[i].scale.x, self.marker_data.markers[i].scale.y, self.marker_data.markers[i].scale.z = 1, 1, 1
-                    self.marker_data.markers[i].type = 2
-                    self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/hades.stl"
+                    #self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= -0.5, -0.5, -0.5, 0.5
+                    #For Tree
+                    #self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= 0.5, -0.5, 0.5, 0.5
+                    #For Person
+                    self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= 0.7071, 0, -0.7071, 0
+                    self.marker_data.markers[i].color.r, self.marker_data.markers[i].color.g, self.marker_data.markers[i].color.b, self.marker_data.markers[i].color.a = 0.5, 0.7, 0, 1.0
+                    self.marker_data.markers[i].scale.x, self.marker_data.markers[i].scale.y, self.marker_data.markers[i].scale.z = 0.2, 0.2, 0.2
+                    self.marker_data.markers[i].type = 10
+                    #self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/Tree1.stl"                    
+                    #self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/hades.stl"
+                    self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/animated_walking_man.mesh"
                     #angle_y = arctan(camera_param[1][0]*center_x+camera_param[1][1]*center_y+camera_param[1][2]*1)
                     #self.detected_area.flags.writeable = True
                     #self.detected_area = np.where(self.detected_area < np.percentile(self.detected_area[np.nonzero(self.detected_area)], 40), 0, self.detected_area)
@@ -83,6 +91,9 @@ class Publishsers():
                 except CvBridgeError as e:
                         pass
 
+            elif bbox.Class == "marker":
+                self.reset_pose(0,0,0,0,0,0)
+ 
     def send_msg(self):
         # messageを送
         self.publisher.publish(self.obstacle_msg)
@@ -116,6 +127,8 @@ class Subscribe_publishers():
 def main():
     # nodeの立ち上げ
     rospy.init_node('publish_tree')
+    rospy.wait_for_service('/rtabmap/reset_odom_to_pose/')
+
     # クラスの作成
     pub = Publishsers()
     sub = Subscribe_publishers(pub)
