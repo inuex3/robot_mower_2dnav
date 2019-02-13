@@ -29,5 +29,5 @@
 		<param name="controller_patience" value="15.0" />
 	</node>
 
-<node name="cmd_to_rc" pkg="robot_mower_2dnav" type="cmd_to_rc.py" respawn="false" output="screen"/>
+<node name="twist_rc" pkg="robot_mower_2dnav" type="twist_rc.py" respawn="false" output="screen"/>
 </launch>
