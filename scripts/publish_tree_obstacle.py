@@ -51,7 +51,7 @@ class Publishsers():
                 try:
                     self.detected_area = self.image[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
                     distance_x = np.median(self.detected_area)/1000
-                    tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]**(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1
+                    tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1
                     distance_y = - distance_x * tan_angle_x
                     angle_x = math.atan(tan_angle_x)  
                     # Add point obstacle
@@ -66,7 +66,7 @@ class Publishsers():
                     self.marker_data.markers[i].header.stamp, self.marker_data.markers[i].header.frame_id = rospy.Time.now(), Image.header.frame_id     
                     self.marker_data.markers[i].ns, self.marker_data.markers[i].id = "basic_shapes", i
                     #print(tf.transformations.quaternion_from_euler(-math.pi/2, 0, -math.pi/2))
-                    print(tf.transformations.quaternion_from_euler(math.pi/2, math.pi/2, -math.pi/2))
+                    #print(tf.transformations.quaternion_from_euler(math.pi/2, math.pi/2, -math.pi/2))
                     self.marker_data.markers[i].action = Marker.ADD
                     self.marker_data.markers[i].pose.position.x, self.marker_data.markers[i].pose.position.y, self.marker_data.markers[i].pose.position.z = -distance_y, 0,distance_x
                     #self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= -0.5, -0.5, -0.5, 0.5
@@ -85,7 +85,7 @@ class Publishsers():
                     #self.detected_area = np.where(self.detected_area < np.percentile(self.detected_area[np.nonzero(self.detected_area)], 40), 0, self.detected_area)
                     #self.detected_area = np.where(self.detected_area > np.percentile(self.detected_area[np.nonzero(self.detected_area)], 60), 0, self.detected_area)
                     #self.detected_area = np.where(self.detected_area < np.median(self.detected_area), 0, self.detected_area)
-                    #print("distance_x" + str(distance_x) + "distance_y" + str(distance_y) + "angle_x" + str(math.degrees(angle_x)))
+                    print("distance_x" + str(distance_x) + "distance_y" + str(distance_y) + "angle_x" + str(math.degrees(angle_x)))
                     #print("difference" + str(np.median(self.detected_area.nonzero())-np.median(self.detected_area)))
                     i += 1
                 except CvBridgeError as e:
