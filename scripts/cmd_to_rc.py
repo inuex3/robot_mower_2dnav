@@ -18,7 +18,7 @@ class Publishsers():
         self.prev_time = rospy.get_time()
         self.prev_odom = Odometry()
         self.P_gain_x = 300
-        self.P_gain_theta = 200
+        self.P_gain_theta = 100
         self.prev_RC_theta = 0
         self.prev_RC_theta = 0
 
@@ -44,8 +44,8 @@ class Publishsers():
                 x = -80
             elif (cmd_vel.linear.x == 0):
                 x = 0              
-            RC_theta = self.prev_RC_theta + (cmd_vel.angular.z - theta_diff[2]/(self.current_time - self.prev_time))*self.P_gain_theta
-            RC_x = self.prev_RC_x + (cmd_vel.angular.z - theta_diff[2]/(self.current_time - self.prev_time))*self.P_gain_theta
+            RC_theta = (cmd_vel.angular.z - theta_diff[2]/(self.current_time - self.prev_time))*self.P_gain_theta
+            RC_x = (cmd_vel.linear.x)*self.P_gain_theta
             self.RC_msg.channels = [1500 - theta - RC_theta, 1500 - x - cmd_vel.linear.x*self.P_gain_theta, 0, 0, 0, 0, 0, 0] #1:steering,2:thrust
             #print("cmd"+str(cmd_vel.angular.z))
             #print("vel"+str(normalized_vel_theta[2]/(self.current_time - self.prev_time)))
@@ -60,8 +60,8 @@ class Subscribe_publishers():
     def __init__(self, pub):
         # Subscriberを作成
         self.subscriber = rospy.Subscriber('/cmd_vel', Twist, self.callback, queue_size = 1)
-        #self.odom_subscriber = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
-        self.odom_subscriber = rospy.Subscriber('/odom', Odometry, self.odom_callback)
+        self.odom_subscriber = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
+        #self.odom_subscriber = rospy.Subscriber('/odom', Odometry, self.odom_callback)
         # messageの型を作成
         # publish
         self.pub = pub

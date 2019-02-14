@@ -18,24 +18,25 @@ class Publishsers():
         self.current_time = rospy.get_time()+0.1
         self.prev_time = rospy.get_time()
         self.prev_odom = Odometry()
-        self.P_gain_x = 300
-        self.P_gain_theta = 100
+        self.P_gain_x = 150
+        self.P_gain_theta = 150
 
     def make_msg(self, cmd_vel, odom):
         # 処理を書く
         self.current_time = rospy.get_time()
         if (cmd_vel.angular.z > 0):
-            theta = 100
+            theta = 50
         elif (cmd_vel.angular.z < 0):
-            theta = -100
+            theta = -50
         elif (cmd_vel.angular.z == 0):
             theta = 0
         if (cmd_vel.linear.x > 0):
-            x = 50
+            x = 80
         elif (cmd_vel.linear.x < 0):
             x = -80
         elif (cmd_vel.linear.x == 0):
-            x = 0                
+            x = 0
+        print(cmd_vel.linear.x - odom.twist.twist.linear.x)                
         self.RC_msg.channels = [1500 - theta - (cmd_vel.angular.z - odom.twist.twist.angular.z)*self.P_gain_theta, 1500 - x - (cmd_vel.linear.x - odom.twist.twist.linear.x)*self.P_gain_theta, 0, 0, 0, 0, 0, 0] #1:steering,2:thrust    
         
     def send_msg(self, current_time, cb_time):
