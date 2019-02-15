@@ -78,6 +78,7 @@ class Publishsers():
                     self.marker_data.markers[i].color.r, self.marker_data.markers[i].color.g, self.marker_data.markers[i].color.b, self.marker_data.markers[i].color.a = 1, 0, 0, 1.0
                     self.marker_data.markers[i].scale.x, self.marker_data.markers[i].scale.y, self.marker_data.markers[i].scale.z = 0.2, 0.2, 1
                     self.marker_data.markers[i].type = 3
+                    self.marker_data.markers[i].lifetime = rospy.Duration.from_sec(2.0)
                     #self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/Tree1.stl"                    
                     #self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/hades.stl"
                     #self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/animated_walking_man.mesh"
