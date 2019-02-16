@@ -40,11 +40,7 @@ class Publishsers():
             x = 1550
         elif (cmd_vel.linear.x == 0):
             x = 0.0    
-        print("")    
-        print((odom.header.stamp - self.prev_odom.header.stamp)/10.0**8)
-        print(self.prev_odom.header.stamp)         
-        print("")                     
-        print("")                     
+        print((odom.header.stamp - self.prev_odom.header.stamp)/10.0**9)                    
         RC_theta = self.prev_RC_theta# + (cmd_vel.angular.z - theta_diff[2]/(self.current_time - self.prev_time))*self.P_gain_theta
         #RC_theta = self.prev_RC_theta + (cmd_vel.angular.z - theta_diff[2]/(odom. - self.prev_odom))*self.P_gain_theta
         RC_x = self.prev_RC_x #+ (cmd_vel.angular.z - theta_diff[2]/(self.current_time - self.prev_time))*self.P_gain_theta
