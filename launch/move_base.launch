@@ -28,9 +28,7 @@
 		<param name="controller_frequency" value="1.0" />
 		<param name="controller_patience" value="15.0" />
 	</node>
-<<<<<<< HEAD
-=======
 
-<node name="twist_rc" pkg="robot_mower_2dnav" type="twist_rc.py" respawn="false" output="screen"/>
->>>>>>> 9d7518807e77ecbbdcd2e916172521b0ea15b235
+<node name="cmd_to_rc" pkg="robot_mower_2dnav" type="cmd_to_rc.py" respawn="false" output="screen"/>
+
 </launch>
