@@ -17,11 +17,10 @@ class Publishsers():
         self.prev_RC_msg = OverrideRCIn()
         self.cmd_vel = Twist()
         self.prev_odom = Odometry()
-        self.gain_x = 100
-        self.gain_theta = 100      
+        self.gain_x = 150
+        self.gain_theta = 50    
 
     def make_msg(self, cmd_vel, odom):
-        # 処理を書く
         if (cmd_vel.angular.z > 0):
             theta = 1450
         elif (cmd_vel.angular.z < 0):
@@ -29,9 +28,9 @@ class Publishsers():
         elif (cmd_vel.angular.z == 0.0):
             theta = 1500
         if (cmd_vel.linear.x > 0):
-            x = 1400
+            x = 1440
         elif (cmd_vel.linear.x < 0):
-            x = 1600
+            x = 1590
         elif (cmd_vel.linear.x == 0.0):
             x = 1500 
         RC_theta = cmd_vel.angular.z * self.gain_theta
@@ -39,7 +38,7 @@ class Publishsers():
         self.RC_msg.channels = [theta - RC_theta, x - RC_x, 0, 0, 0, 0, 0, 0] #1:steering,2:thrust
         
     def send_msg(self, time_now, cb_time):
-        if (time_now - cb_time) > 1.5:
+        if (time_now - cb_time) > 3.0:
             self.RC_msg.channels = [0, 0, 0, 0, 0, 0, 0, 0] #1:steering,2:thrust
             self.prev_RC_theta = 0   
             self.prev_RC_x = 0

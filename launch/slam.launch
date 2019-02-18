@@ -9,9 +9,9 @@
   <arg name="wait_for_transform" default="0.2"/> <!-- for data delay-->
 
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera1_tf"
-      args="0.5 0 0.6 0.0 0.0 0.0 base_link camera1_link 100" />-->
+      args="0.5 0 0.89 0.0 0.436 0.0 base_link camera1_link 100" />-->
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera2_tf"
-      args="0.0 0.0 0.62 3.1415926535 0.0 0.0  base_link camera2_link 100" />
+      args="0.0 0.0 0.92 3.1415926535 0.436 0.0  base_link camera2_link 100" />
    <group ns="camera1">
     <node pkg="nodelet" type="nodelet" name="nodelet_manager1" args="manager" />
     <node pkg="nodelet" type="nodelet" name="rgbd_sync1" args="load rtabmap_ros/rgbd_sync nodelet_manager1">
