@@ -16,15 +16,9 @@ class Publishsers():
         self.RC_msg = OverrideRCIn()
         self.prev_RC_msg = OverrideRCIn()
         self.cmd_vel = Twist()
-        self.current_time = 0
-        self.prev_time = 0
         self.prev_odom = Odometry()
         self.gain_x = 100
         self.gain_theta = 100      
-        self.prev_RC_theta = 0
-        self.prev_RC_x = 0
-        self.prev_error_theta = 0
-        self.prev_error_x = 0
 
     def make_msg(self, cmd_vel, odom):
         # 処理を書く
