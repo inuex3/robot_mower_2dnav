@@ -25,7 +25,8 @@ class Publishsers():
         self.I_gain_theta = 15
         self.D_gain_x = 5
         self.D_gain_theta = 15
-        self.I_error_theta = 0
+        self.I_error_x = 0
+        self.I_error_theta = 0        
         self.prev_RC_theta = 0
         self.prev_RC_x = 0
         self.prev_error_theta = 0
