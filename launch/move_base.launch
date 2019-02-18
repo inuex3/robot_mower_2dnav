@@ -10,7 +10,7 @@
 <launch>
   <remap from="map" to="/rtabmap/grid_map"/>
   <remap from="odom" to="/odometry/filtered"/>
-  <arg name="spacing" default="0.4" />
+  <arg name="cutting_spacing" default="0.4" />
         <!--  ************** Navigation ***************  -->
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
   	  	<rosparam file="$(find robot_mower_2dnav)/cfg/costmap_common_params.yaml" command="load" ns="global_costmap" />

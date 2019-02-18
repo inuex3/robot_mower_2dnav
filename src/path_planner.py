@@ -61,7 +61,7 @@ class PathPlannerNode(object):
         self.path_marker_pub = rospy.Publisher('visualization_marker',
                                                MarkerArray,
                                                latch=True)
-        rospy.Subscriber('odom', Odometry, self.odom_callback)
+        rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
 
         # Setup initial variables
         self.field_shape = None
