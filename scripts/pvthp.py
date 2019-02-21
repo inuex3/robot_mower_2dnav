@@ -5,6 +5,7 @@ import serial
 import rospy
 import binascii
 import struct
+import numpy as np
 from pyproj import Proj
 
 # ROS message form
@@ -26,8 +27,9 @@ NAV_HPPOSLLH_Length = 36
 class ublox():
     def __init__(self):
         # Set up serial:
+        port = rospy.get_param('~port', '/dev/ttyACM0')
         self.ser = serial.Serial(
-            port='/dev/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00',\
+            port,\
             baudrate=38400,\
             parity=serial.PARITY_NONE,\
             stopbits=serial.STOPBITS_ONE,\
@@ -95,15 +97,18 @@ class ublox():
             # UTM
             utmzone = int((longitude + 180)/6) +1   # If you are on the specific location, can't be calculated. 
             convertor = Proj(proj='utm', zone=utmzone, ellps='WGS84')
-            x, y = convertor(longitudeHp, latitudeHp)
+            self.x, self.y = convertor(longitudeHp, latitudeHp)
             
             #publish navsatfix
             self.navsat.header.stamp = rospy.Time.now()
+            self.navsat.header.frame_id = "gnss_link"
             self.navsat.status.status = self.fix_status
-            self.navsat.latitude = longitudeHp
-            self.navsat.longitude = latitudeHp
+            self.navsat.latitude = latitudeHp
+            self.navsat.longitude = longitudeHp
             self.navsat.altitude = heightHp
-            self.navsat.position_covariance = np.array([self.hAcc,0,0,0,self.hAcc,0,0,0,self.vAcc])
+            self.navsat.position_covariance = np.array([self.hAcc/1000.0, 0, 0,
+                                                        0, self.hAcc/1000.0, 0,
+                                                        0, 0, self.vAcc/1000.0])
             self.pub_navsat.publish(self.navsat)
             
             # Publish utm_hp
@@ -112,8 +117,8 @@ class ublox():
             self.utm_hp.fix_status = self.fix_status
             self.utm_hp.lonHp = longitudeHp
             self.utm_hp.latHp = latitudeHp
-            self.utm_hp.utm_easting = x
-            self.utm_hp.utm_northing = y
+            self.utm_hp.utm_easting = self.x
+            self.utm_hp.utm_northing = self.y
             self.utm_hp.heightHp = heightHp
             self.utm_hp.hMSL = self.hMSL
             self.utm_hp.hAcc = self.hAcc
@@ -143,7 +148,7 @@ class ublox():
             
             # decode RTK fix flag
             fix_flag = int(struct.unpack('B', struct.pack('B', NAV_PVT_Data[23]))[0])
-            fix_fix_flagflag = bin(fix_flag)[2:].zfill(8)
+            fix_flag = bin(fix_flag)[2:].zfill(8)
             if fix_flag[0:2] == "10":
                 self.fix_status = 2    # when rtk was fixed, publish 2
                 fix_str = "RTK fixed solution"
@@ -182,14 +187,14 @@ class ublox():
             self.pub_gpst.publish(str(rospy.Time.now()) +"," +str(gpst))
 
             # publish UTM coordinate
-            utmzone = int((longitude + 180)/6) +1   # If you are on the specific location, can't be calculated. 
-            convertor = Proj(proj='utm', zone=utmzone, ellps='WGS84')
-            x, y = convertor(longitude, latitude)
-            self.utm.header.stamp = rospy.Time.now()
-            self.utm.pose.pose.position.x = x
-            self.utm.pose.pose.position.y = y
-            self.utm.pose.pose.position.z = height
-            self.pub_utm.publish(self.utm)
+            try:
+                self.utm.header.stamp = rospy.Time.now()
+                self.utm.pose.pose.position.x = self.x
+                self.utm.pose.pose.position.y = self.y
+                self.utm.pose.pose.position.z = height
+                self.pub_utm.publish(self.utm)
+            except AttributeError:
+                pass
 
             # publish GNSS status
             self.navpvt_data.iTOW = gpst

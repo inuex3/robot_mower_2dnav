@@ -53,8 +53,8 @@ class Publishsers():
                     distance_x = np.median(self.detected_area)/1000
                     tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1
                     distance_y = - distance_x * tan_angle_x
-                    angle_x = math.atan(tan_angle_x)  
-                    if abs(math.degrees(angle_x)) < 30 and distance_x > 1.0:
+                    angle_x = math.atan(tan_angle_x) 
+                    if abs(math.degrees(angle_x)) < 20:
                     # Add point obstacle
                         self.obstacle_msg.obstacles.append(ObstacleMsg())
                         self.obstacle_msg.obstacles[i].header.stamp, self.obstacle_msg.obstacles[i].header.frame_id = rospy.Time.now(), Image.header.frame_id     

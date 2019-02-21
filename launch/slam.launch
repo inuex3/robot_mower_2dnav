@@ -9,9 +9,9 @@
   <arg name="wait_for_transform" default="0.2"/> <!-- for data delay-->
 
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera1_tf"
-      args="0.5 0 0.89 0.0 0.436 0.0 base_link camera1_link 100" />-->
+      args="0.5 0 0.89 0.0 0.2618 0.0 base_link camera1_link 100" />-->
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera2_tf"
-      args="0.0 0.0 0.92 3.1415926535 0.436 0.0  base_link camera2_link 100" />
+      args="0.0 0.0 0.92 3.1415926535 0.2618 0.0  base_link camera2_link 100" />
    <group ns="camera1">
     <node pkg="nodelet" type="nodelet" name="nodelet_manager1" args="manager" />
     <node pkg="nodelet" type="nodelet" name="rgbd_sync1" args="load rtabmap_ros/rgbd_sync nodelet_manager1">
@@ -113,7 +113,7 @@
     <param name="/ukf_se/imu0_differential" value="true"/>
     <param name="/ukf_se/imu0_relative" value="false"/>
 
-    <param name="/ukf_se/imu1" value="/imu2/data"/>
+    <param name="/ukf_se/imu1" value="/imu0/data"/>
     <rosparam param="/ukf_se/imu1_config">[false, false, false,
                                            true,true,true,
                                            true,true,true,
@@ -128,6 +128,20 @@
                                            false,false,true]
     </rosparam>
     <!-- <param name="/ukf_se/odom_config" value="{true,true,true,}"/> -->
+   <!-- navsat_transform -->
+   <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform" respawn="true" output="screen">
+      <param name="frequency" value="10"/>
+      <param name="delay" value="0.1"/>
+      <param name="yaw_offset" value="1.570796327"/>
+      <param name="zero_altitude" value="true"/>
+      <param name="broadcast_utm_transform" value="true"/>
+      <param name="publish_filtered_gps" value="true"/>
+      <param name="use_odometry_yaw" value="false"/>
+      <param name="wait_for_datum" value="false"/>
+      <remap from="/odometry/filtered" to="/odometry/filtered"/>
+      <remap from="/imu/data" to="/imu1/data"/>
+      <remap from="/gps/fix" to="/RTK_NavSatFix"/>
+    </node>
 
   <!-- Visualization RVIZ -->
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rtabmap_ros)/launch/config/rgbd.rviz"/>
