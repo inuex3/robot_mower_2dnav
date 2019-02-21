@@ -24,7 +24,6 @@ class Publishsers():
         self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/detected_tree", MarkerArray, queue_size = 1)
         self.reset_pose = rospy.ServiceProxy('/rtabmap/reset_odom_to_pose', ResetPose)
-        #self.marker_publisher = rospy.Publisher("/detected_tree", Marker, queue_size = 1)
         self.now = rospy.get_rostime()
         self.prev = rospy.get_rostime()
 
