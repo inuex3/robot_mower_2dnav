@@ -7,7 +7,7 @@ from sensor_msgs.msg import Imu
 from tf.transformations import quaternion_from_euler
 from tf.transformations import euler_from_quaternion
 
-pub = rospy.Publisher('/imu2/data', Imu, queue_size=10)
+pub = rospy.Publisher('/imu1/data', Imu, queue_size=10)
 
 def callback_imu(Imu):
     e = tf.transformations.euler_from_quaternion((Imu.orientation.x,Imu.orientation.y,Imu.orientation.z,Imu.orientation.w))
