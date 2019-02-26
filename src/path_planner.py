@@ -26,7 +26,7 @@ Once the path has been generated the node can, by configuration or
 a service call, start feeding path waypoints as actionlib goals to move base.
 """
 
-import roslib;
+import roslib
 import rospy
 import tf
 from tf.transformations import quaternion_from_euler as qfe
@@ -419,6 +419,8 @@ class PathPlannerNode(object):
             rospy.loginfo("Sending waypoint (%f, %f)@%f" % tuple(current_waypoint))
             self.current_destination = destination
             self.move_base_client.send_goal(destination)
+            if self.current_distance < self.cut_spacing + 0.1:
+                self.move_base_client.cancel_goal()
             self.previous_destination = destination
         # If the status is visiting, then we just need to monitor the status
         temp_state = self.move_base_client.get_goal_status_text()

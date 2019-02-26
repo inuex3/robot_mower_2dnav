@@ -98,8 +98,9 @@ class Publishsers():
  
     def send_msg(self):
         # messageを送
-        self.publisher.publish(self.obstacle_msg)
-        self.marker_publisher.publish(self.marker_data)
+        if len(self.obstacle_msg.obstacles) >= 1:
+            self.publisher.publish(self.obstacle_msg)
+            self.marker_publisher.publish(self.marker_data)
 
 class Subscribe_publishers():
     def __init__(self, pub):
