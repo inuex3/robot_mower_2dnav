@@ -12,9 +12,9 @@ from geometry_msgs.msg import PolygonStamped, Point32
 import numpy as np
 from darknet_ros_msgs.msg import BoundingBoxes,BoundingBox
 from rtabmap_ros.srv import ResetPose
+import tf
 import cv2
 import math
-import tf
 
 
 class Publishsers():
@@ -83,7 +83,7 @@ class Publishsers():
                         distance_y = - distance_x * tan_angle_x
                         if distance_x < 4:
                             obstacle_msg.obstacles.append(ObstacleMsg())
-                            tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), bboxes.header.stamp, DepthImage.header.frame_id, bbox.Class + str(i))
+                            self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), bboxes.header.stamp, DepthImage.header.frame_id, bbox.Class + str(i))
                             obstable_position = tf.lookupTransform("odom", bbox.Class + str(i), bboxes.header.stamp)
                             obstacle_msg.obstacles.append(ObstacleMsg())
                             obstacle_msg.obstacles[i].header.stamp, self.obstacle_msg.obstacles[i].header.frame_id = bboxes.header.stamp, "odom"    
