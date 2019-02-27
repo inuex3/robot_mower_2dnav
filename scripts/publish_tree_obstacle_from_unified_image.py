@@ -24,14 +24,19 @@ class Publishsers():
         self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/detected_tree", MarkerArray, queue_size = 1)
         self.reset_pose = rospy.ServiceProxy('/rtabmap/reset_odom_to_pose', ResetPose)
+        self.tf_br = tf.TransformBroadcaster()
+        self.bboxes_from_camera1 = BoundingBoxes()
+        self.bboxes_from_camera2 = BoundingBoxes()
         self.now = rospy.get_rostime()
         self.prev = rospy.get_rostime()
 
 
     def make_msg(self, Depth1Image, Depth2Image, detection_data, camera1_param, camera2s_param):
+        self.bboxes_from_camera1 = BoundingBoxes()
+        self.bboxes_from_camera2 = BoundingBoxes()
+        self.bboxes_from_camera1.header = Depth1Image.header
+        self.bboxes_from_camera2.header = Depth2Image.header
         self.now = rospy.get_rostime()
-        bboxes_from_camera1 = BoundingBoxes()
-        bboxes_from_camera2 = BoundingBoxes()
         self.timebefore = detection_data.header.stamp
         # Add point obstacle
         self.obstacle_msg = ObstacleArrayMsg() 
@@ -49,14 +54,16 @@ class Publishsers():
         i = 0
         for bbox in detection_data.bounding_boxes:
             if (bbox.ymin + bbox.ymax) < self.Depth1image.shape[0]:
-                bboxes_from_camera1.bounding_boxes.append(bbox)
+                if bbox.ymax > self.Depth1image.shape[0]:
+                    bbox.ymax = self.Depth1image.shape[0]
+                self.bboxes_from_camera1.bounding_boxes.append(bbox)
             else:
                 bbox.ymin = bbox.ymin - self.Depth1image.shape[0]
                 bbox.ymax = bbox.ymax - self.Depth1image.shape[0]
-                bboxes_from_camera2.bounding_boxes.append(bbox)
-
-        """
-        for bbox in detection_data.bounding_boxes:
+                if bbox.ymin < 0:
+                    bbox.ymin = 0
+                    print(bbox)
+                self.bboxes_from_camera2.bounding_boxes.append(bbox)
             if bbox.Class == "person":
                 try:
                     self.detected_area = self.Depth1image[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
@@ -65,7 +72,12 @@ class Publishsers():
                     distance_y = - distance_x * tan_angle_x
                     angle_x = math.atan(tan_angle_x) 
                     if abs(math.degrees(angle_x)) < 30:
-                    # Add point obstacle
+                        self.tf_br.sendTransform((distance_x, distance_y, 0),
+                     tf.transformations.quaternion_from_euler(0, 0, 0),
+                     rospy.Time.now(),
+                     Image.header.frame_id,
+                     "Tree" + str(i))
+                        # Add point obstacle
                         self.obstacle_msg.obstacles.append(ObstacleMsg())
                         self.obstacle_msg.obstacles[i].header.stamp, self.obstacle_msg.obstacles[i].header.frame_id = rospy.Time.now(), Image.header.frame_id     
                         self.obstacle_msg.obstacles[i].id = i
@@ -77,39 +89,38 @@ class Publishsers():
                         self.marker_data.markers.append(Marker())
                         self.marker_data.markers[i].header.stamp, self.marker_data.markers[i].header.frame_id = rospy.Time.now(), Image.header.frame_id     
                         self.marker_data.markers[i].ns, self.marker_data.markers[i].id = "basic_shapes", i
-                        #print(tf.transformations.quaternion_from_euler(-math.pi/2, 0, -math.pi/2))
-                        #print(tf.transformations.quaternion_from_euler(math.pi/2, math.pi/2, -math.pi/2))
                         self.marker_data.markers[i].action = Marker.ADD
                         self.marker_data.markers[i].pose.position.x, self.marker_data.markers[i].pose.position.y, self.marker_data.markers[i].pose.position.z = -distance_y, 0,distance_x
                         self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= -0.5, -0.5, -0.5, 0.5
-                        #For Tree
-                        #self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= 0.5, -0.5, 0.5, 0.5
-                        #For Person
-                        #self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= 0.7071, 0, -0.7071, 0
                         self.marker_data.markers[i].color.r, self.marker_data.markers[i].color.g, self.marker_data.markers[i].color.b, self.marker_data.markers[i].color.a = 1, 0, 0, 1.0
                         self.marker_data.markers[i].scale.x, self.marker_data.markers[i].scale.y, self.marker_data.markers[i].scale.z = 0.2, 0.2, 1
                         self.marker_data.markers[i].type = 3
                         self.marker_data.markers[i].lifetime = rospy.Duration.from_sec(2.0)
-                        #self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/Tree1.stl"                    
-                        #self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/hades.stl"
-                        #self.marker_data.markers[i].mesh_resource = "package://robot_mower_2dnav/stl/animated_walking_man.mesh"
-                        #angle_y = arctan(camera_param[1][0]*center_x+camera_param[1][1]*center_y+camera_param[1][2]*1)
-                        #self.detected_area.flags.writeable = True
-                        #self.detected_area = np.where(self.detected_area < np.percentile(self.detected_area[np.nonzero(self.detected_area)], 40), 0, self.detected_area)
-                        #self.detected_area = np.where(self.detected_area > np.percentile(self.detected_area[np.nonzero(self.detected_area)], 60), 0, self.detected_area)
-                        #self.detected_area = np.where(self.detected_area < np.median(self.detected_area), 0, self.detected_area)
-                        #print("distance_x" + str(distance_x) + "distance_y" + str(distance_y) + "angle_x" + str(math.degrees(angle_x)))
-                        #print("difference" + str(np.median(self.detected_area.nonzero())-np.median(self.detected_area)))
                         i += 1
                 except CvBridgeError as e:
                         pass
 
             elif bbox.Class == "marker":
                 self.reset_pose(0,0,0,0,0,0)
-        """                
+        
+    def bbox_to_obstacle(bboxes, DepthImage, camera_param):
+        for bbox in bboxes:
+            if bbox.Class == "person":
+                try:
+                    detected_area = Depthimage[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
+                    distance_x = np.median(detected_area)/1000
+                    tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1
+                    distance_y = - distance_x * tan_angle_x
+                    angle_x = math.atan(tan_angle_x) 
+                    if abs(math.degrees(angle_x)) < 30:
+                        self.tf_br.sendTransform((distance_x, distance_y, 0),
+                     tf.transformations.quaternion_from_euler(0, 0, 0),
+                     bboxes.header.stamp,
+                     DepthImage.header.frame_id,
+                     bbox.Class + str(i))
+                        obstable = tf.lookupTransform("odom", bbox.Class + str(i), bboxes.header.stamp)
  
     def send_msg(self):
-        # messageを送
         self.publisher.publish(self.obstacle_msg)
         self.marker_publisher.publish(self.marker_data)
 
