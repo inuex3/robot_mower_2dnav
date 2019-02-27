@@ -56,7 +56,7 @@ class Publishsers():
                 bbox.ymax = bbox.ymax - self.Depth1image.shape[0]
                 bboxes_from_camera2.append(bbox)
 
-
+        """
         for bbox in detection_data.bounding_boxes:
             if bbox.Class == "person":
                 try:
@@ -107,6 +107,7 @@ class Publishsers():
 
             elif bbox.Class == "marker":
                 self.reset_pose(0,0,0,0,0,0)
+        """                
  
     def send_msg(self):
         # messageを送
