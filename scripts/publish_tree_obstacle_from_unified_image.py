@@ -28,7 +28,7 @@ class Publishsers():
         self.prev = rospy.get_rostime()
 
 
-    def make_msg(self, Depth1Image, Depth2Image, detection_data, camera_param):
+    def make_msg(self, Depth1Image, Depth2Image, detection_data, camera1_param, camera2s_param):
         self.now = rospy.get_rostime()
         bboxes_from_camera1 = BoundingBoxes()
         bboxes_from_camera2 = BoundingBoxes()
