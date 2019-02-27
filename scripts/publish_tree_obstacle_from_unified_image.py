@@ -25,6 +25,7 @@ class Publishsers():
         self.reset_pose = rospy.ServiceProxy('/rtabmap/reset_odom_to_pose', ResetPose)
         self.obstacle_list = ["person", "tree"]
         self.tf_br = tf.TransformBroadcaster()
+        self.tf_listener = tf.TransformListener()
         self.now = rospy.get_rostime()
         self.prev = rospy.get_rostime()
 
@@ -84,7 +85,7 @@ class Publishsers():
                         if distance_x < 4:
                             obstacle_msg.obstacles.append(ObstacleMsg())
                             self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), bboxes.header.stamp, DepthImage.header.frame_id, bbox.Class + str(i))
-                            obstable_position = tf.lookupTransform("odom", bbox.Class + str(i), bboxes.header.stamp)
+                            obstable_position = self.tf_listener.lookupTransform("odom", bbox.Class + str(i), bboxes.header.stamp)
                             obstacle_msg.obstacles.append(ObstacleMsg())
                             obstacle_msg.obstacles[i].header.stamp, self.obstacle_msg.obstacles[i].header.frame_id = bboxes.header.stamp, "odom"    
                             obstacle_msg.obstacles[i].id = i
