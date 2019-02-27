@@ -24,7 +24,6 @@ class Publishsers():
         self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/detected_tree", MarkerArray, queue_size = 1)
         self.reset_pose = rospy.ServiceProxy('/rtabmap/reset_odom_to_pose', ResetPose)
-        #self.marker_publisher = rospy.Publisher("/detected_tree", Marker, queue_size = 1)
         self.now = rospy.get_rostime()
         self.prev = rospy.get_rostime()
 
@@ -120,8 +119,8 @@ class Subscribe_publishers():
         self.depth1_subscriber = message_filters.Subscriber('/camera1/aligned_depth_to_color/image_raw', Image)
         self.depth2_subscriber = message_filters.Subscriber('/camera2/aligned_depth_to_color/image_raw', Image)
         self.detection_subscriber =message_filters.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes)
-        self.camera1_param_subscriber = rospy.Subscriber("/camera1/color/camera_info", CameraInfo, self.camere1_parameter_callback)
-        self.camera2_param_subscriber = rospy.Subscriber("/camera2/color/camera_info", CameraInfo, self.camere2_parameter_callback)
+        self.camera1_param_subscriber = rospy.Subscriber("/camera1/color/camera_info", CameraInfo, self.camera1_parameter_callback)
+        self.camera2_param_subscriber = rospy.Subscriber("/camera2/color/camera_info", CameraInfo, self.camera2_parameter_callback)
         # messageの型を作成
         self.pub = pub
         self.camera1_parameter = CameraInfo()
