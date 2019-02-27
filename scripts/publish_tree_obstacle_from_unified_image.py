@@ -4,7 +4,6 @@
 import rospy
 from geometry_msgs.msg import Twist
 import message_filters
-from mavros_msgs.msg import OverrideRCIn
 from sensor_msgs.msg import Image,CameraInfo
 from cv_bridge import CvBridge, CvBridgeError
 from costmap_converter.msg import ObstacleArrayMsg, ObstacleMsg
@@ -24,102 +23,82 @@ class Publishsers():
         self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/detected_tree", MarkerArray, queue_size = 1)
         self.reset_pose = rospy.ServiceProxy('/rtabmap/reset_odom_to_pose', ResetPose)
+        self.obstacle_list = ["person", "tree"]
         self.tf_br = tf.TransformBroadcaster()
-        self.bboxes_from_camera1 = BoundingBoxes()
-        self.bboxes_from_camera2 = BoundingBoxes()
         self.now = rospy.get_rostime()
         self.prev = rospy.get_rostime()
 
-
     def make_msg(self, Depth1Image, Depth2Image, detection_data, camera1_param, camera2s_param):
-        self.bboxes_from_camera1 = BoundingBoxes()
-        self.bboxes_from_camera2 = BoundingBoxes()
-        self.bboxes_from_camera1.header = Depth1Image.header
-        self.bboxes_from_camera2.header = Depth2Image.header
+        bboxes_from_camera1 = BoundingBoxes()
+        bboxes_from_camera2 = BoundingBoxes()
+        bboxes_from_camera1.header = Depth1Image.header
+        bboxes_from_camera2.header = Depth2Image.header
         self.now = rospy.get_rostime()
         self.timebefore = detection_data.header.stamp
         # Add point obstacle
         self.obstacle_msg = ObstacleArrayMsg() 
-        self.obstacle_msg.header.stamp = rospy.Time.now()
+        self.obstacle_msg.header.stamp = detection_data.header.stamp
         self.obstacle_msg.header.frame_id = "odom" # CHANGE HERE: odom/map
         self.marker_data = MarkerArray()
-        self.rate = rospy.Rate(25)        
         #opencvに変換
         bridge = CvBridge()
         try:
-            self.Depth1image = bridge.imgmsg_to_cv2(Depth1Image, desired_encoding="passthrough")
-            self.Depth2image = bridge.imgmsg_to_cv2(Depth2Image, desired_encoding="passthrough")
+            Depth1image = bridge.imgmsg_to_cv2(Depth1Image, desired_encoding="passthrough")
+            Depth2image = bridge.imgmsg_to_cv2(Depth2Image, desired_encoding="passthrough")
         except CvBridgeError as e:
             print(e)
-        i = 0
         for bbox in detection_data.bounding_boxes:
-            if (bbox.ymin + bbox.ymax) < self.Depth1image.shape[0]:
-                if bbox.ymax > self.Depth1image.shape[0]:
-                    bbox.ymax = self.Depth1image.shape[0]
-                self.bboxes_from_camera1.bounding_boxes.append(bbox)
+            if (bbox.ymin + bbox.ymax) < Depth1image.shape[0]:
+                if bbox.ymax > Depth1image.shape[0]:
+                    bbox.ymax = Depth1image.shape[0]
+                bboxes_from_camera1.bounding_boxes.append(bbox)
             else:
-                bbox.ymin = bbox.ymin - self.Depth1image.shape[0]
-                bbox.ymax = bbox.ymax - self.Depth1image.shape[0]
+                bbox.ymin = bbox.ymin - Depth1image.shape[0]
+                bbox.ymax = bbox.ymax - Depth1image.shape[0]
                 if bbox.ymin < 0:
                     bbox.ymin = 0
-                    print(bbox)
-                self.bboxes_from_camera2.bounding_boxes.append(bbox)
-            if bbox.Class == "person":
-                try:
-                    self.detected_area = self.Depth1image[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
-                    distance_x = np.median(self.detected_area)/1000
-                    tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1
-                    distance_y = - distance_x * tan_angle_x
-                    angle_x = math.atan(tan_angle_x) 
-                    if abs(math.degrees(angle_x)) < 30:
-                        self.tf_br.sendTransform((distance_x, distance_y, 0),
-                     tf.transformations.quaternion_from_euler(0, 0, 0),
-                     rospy.Time.now(),
-                     Image.header.frame_id,
-                     "Tree" + str(i))
-                        # Add point obstacle
-                        self.obstacle_msg.obstacles.append(ObstacleMsg())
-                        self.obstacle_msg.obstacles[i].header.stamp, self.obstacle_msg.obstacles[i].header.frame_id = rospy.Time.now(), Image.header.frame_id     
-                        self.obstacle_msg.obstacles[i].id = i
-                        self.obstacle_msg.obstacles[i].polygon.points = [Point32()]
-                        self.obstacle_msg.obstacles[i].polygon.points[0].x = -distance_y
-                        self.obstacle_msg.obstacles[i].polygon.points[0].y = 0
-                        self.obstacle_msg.obstacles[i].polygon.points[0].z = distance_x
-                        self.obstacle_msg.obstacles[i].radius = 0.15
-                        self.marker_data.markers.append(Marker())
-                        self.marker_data.markers[i].header.stamp, self.marker_data.markers[i].header.frame_id = rospy.Time.now(), Image.header.frame_id     
-                        self.marker_data.markers[i].ns, self.marker_data.markers[i].id = "basic_shapes", i
-                        self.marker_data.markers[i].action = Marker.ADD
-                        self.marker_data.markers[i].pose.position.x, self.marker_data.markers[i].pose.position.y, self.marker_data.markers[i].pose.position.z = -distance_y, 0,distance_x
-                        self.marker_data.markers[i].pose.orientation.x, self.marker_data.markers[i].pose.orientation.y, self.marker_data.markers[i].pose.orientation.z, self.marker_data.markers[i].pose.orientation.w= -0.5, -0.5, -0.5, 0.5
-                        self.marker_data.markers[i].color.r, self.marker_data.markers[i].color.g, self.marker_data.markers[i].color.b, self.marker_data.markers[i].color.a = 1, 0, 0, 1.0
-                        self.marker_data.markers[i].scale.x, self.marker_data.markers[i].scale.y, self.marker_data.markers[i].scale.z = 0.2, 0.2, 1
-                        self.marker_data.markers[i].type = 3
-                        self.marker_data.markers[i].lifetime = rospy.Duration.from_sec(2.0)
-                        i += 1
-                except CvBridgeError as e:
-                        pass
-
-            elif bbox.Class == "marker":
-                self.reset_pose(0,0,0,0,0,0)
+                bboxes_from_camera2.bounding_boxes.append(bbox)
+        camera1_obstacle_msg, camera1_marker_data = bbox_to_object(bboxes_from_camera1, Depth1image, camera1_param)
+        camera2_obstacle_msg, camera2_marker_data = bbox_to_object(bboxes_from_camera2, Depth2image, camera2_param)
+        self.obstacle_msg.append(camera1_obstacle_msg.obstacles, camera2_obstacle_msg.obstacles)
         
-    def bbox_to_obstacle(bboxes, DepthImage, camera_param):
-        for bbox in bboxes:
-            if bbox.Class == "person":
+    
+    def bbox_to_object(bboxes, DepthImage, camera_param):
+        obstacle_msg = ObstacleArrayMsg() 
+        marker_data = MarkerArray()
+        for i, bbox in enumerate(bboxes):
+            if bbox.Class in self.obstacle_list:
                 try:
-                    detected_area = Depthimage[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
-                    distance_x = np.median(detected_area)/1000
-                    tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1
-                    distance_y = - distance_x * tan_angle_x
+                    tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1                    
                     angle_x = math.atan(tan_angle_x) 
                     if abs(math.degrees(angle_x)) < 30:
-                        self.tf_br.sendTransform((distance_x, distance_y, 0),
-                     tf.transformations.quaternion_from_euler(0, 0, 0),
-                     bboxes.header.stamp,
-                     DepthImage.header.frame_id,
-                     bbox.Class + str(i))
-                        obstable = tf.lookupTransform("odom", bbox.Class + str(i), bboxes.header.stamp)
- 
+                        detected_area = DepthImage[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
+                        distance_x = np.median(detected_area)/1000
+                        distance_y = - distance_x * tan_angle_x
+                        if distance_x < 4:
+                            obstacle_msg.obstacles.append(ObstacleMsg())
+                            tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), bboxes.header.stamp, DepthImage.header.frame_id, bbox.Class + str(i))
+                            obstable_position = tf.lookupTransform("odom", bbox.Class + str(i), bboxes.header.stamp)
+                            obstacle_msg.obstacles.append(ObstacleMsg())
+                            obstacle_msg.obstacles[i].header.stamp, self.obstacle_msg.obstacles[i].header.frame_id = bboxes.header.stamp, "odom"    
+                            obstacle_msg.obstacles[i].id = i
+                            obstacle_msg.obstacles[i].polygon.points = [Point32()]
+                            obstacle_msg.obstacles[i].polygon.points[0].x = obstable_position[0]
+                            obstacle_msg.obstacles[i].polygon.points[0].y = obstable_position[1]
+                            obstacle_msg.obstacles[i].polygon.points[0].z = 0
+                            obstacle_msg.obstacles[i].radius = 0.15  
+                            marker_data.markers.append(Marker())
+                            marker_data.markers[i].header.stamp, marker_data.markers[i].header.frame_id = bboxes.header.stamp, "odom"     
+                            marker_data.markers[i].ns, marker_data.markers[i].id = bbox.Class, i
+                            marker_data.markers[i].action = Marker.ADD
+                            marker_data.markers[i].pose.position.x, marker_data.markers[i].pose.position.y, marker_data.markers[i].pose.position.z = obstable_position[0], obstable_position[1], 0
+                            marker_data.markers[i].pose.orientation.x, marker_data.markers[i].pose.orientation.y, marker_data.markers[i].pose.orientation.z, marker_data.markers[i].pose.orientation.w= -0.5, -0.5, -0.5, 0.5
+                            marker_data.markers[i].color.r, marker_data.markers[i].color.g, marker_data.markers[i].color.b, marker_data.markers[i].color.a = 1, 0, 0, 1.0
+                            marker_data.markers[i].scale.x, marker_data.markers[i].scale.y, marker_data.markers[i].scale.z = 0.2, 0.2, 1
+                            marker_data.markers[i].type = 3
+                            marker_data.markers[i].lifetime = rospy.Duration.from_sec(3.0)
+        return obstacle_msg, marker_data
+    
     def send_msg(self):
         self.publisher.publish(self.obstacle_msg)
         self.marker_publisher.publish(self.marker_data)
