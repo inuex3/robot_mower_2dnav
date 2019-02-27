@@ -65,11 +65,11 @@ class Publishsers():
         self.marker_data.markers.append(camera1_marker_data.markers)
         self.marker_data.markers.append(camera2_marker_data.markers)
 
-    def send_msg(bboxes, DepthImage, camera_param):
+    def send_msg(self):
         self.publisher.publish(self.obstacle_msg)
         self.marker_publisher.publish(self.marker_data)        
     
-    def bbox_to_position_in_odom(bboxes, DepthImage, camera_param):
+    def bbox_to_position_in_odom(self, bboxes, DepthImage, camera_param):
         obstacle_msg = ObstacleArrayMsg() 
         marker_data = MarkerArray()
         for i, bbox in enumerate(bboxes):
