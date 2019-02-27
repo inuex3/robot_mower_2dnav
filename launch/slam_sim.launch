@@ -46,7 +46,7 @@
       <param name="subscribe_rgbd"           type="bool"   value="true"/>
 
       <param name="approx_sync"          value="true"/>
-      <param name="queue_size"          value="10"/>
+      <param name="queue_size"          value="1"/>
       <param name="wait_for_transform_duration" type="double" value="0.2"/>
       <param name="frame_id"                 type="string" value="base_link"/>
       <param name="rgbd_cameras"             type="int"    value="2"/>
@@ -66,7 +66,7 @@
       <param name="rgbd_cameras"     type="int"    value="2"/>
       <param name="frame_id"         type="string" value="base_link"/>
       <param name="Optimizer/Strategy" type="string" value="2"/>
-      <param name="queue_size"          value="10"/>
+      <param name="queue_size"          value="1"/>
       <param name="Kp/DetectorStrategy"    type="string" value="8"/> 
       <param name="wait_for_transform" type="bool" value="true"/>
       <param name="wait_for_transform_duration" type="double" value="0.2"/>
@@ -76,6 +76,7 @@
       <param name="RGBD/ProximityPathFilteringRadius" type="double"   value="1" /> 
       <param name="Grid/MaxGroundHeight" type="double" value="9999" />
       <param name="Grid/MinGroundHeight" type="double" value="-9999" />
+      <param name="Reg/Force3DoF"    value="true" />
       <param name="Optimizer/Slam2D" value="true" />
       <param name="grid_cell_size" type="double" value="0.10" />
       <param name="database_path"        type="string" value="$(arg database_path)"/>
@@ -85,15 +86,15 @@
    </group>
 
     <node pkg="imu_filter_madgwick" type="imu_filter_node" name="ImuFilter">
-        <param name="use_mag" type="bool" value="true" />
+        <param name="use_mag" type="bool" value="false" />
         <param name="publish_tf" type="bool" value="true" />
         <param name="world_frame" type="string" value="enu" />
         <remap from="/imu/data_raw" to="/camera1/imu"/>
     </node>
 
     <include file="$(find robot_localization)/launch/ukf_template.launch"/>
-    <param name="two_d_mode" value="false"/>    
-    <param name="/ukf_se/frequency" value="300"/>
+    <param name="two_d_mode" value="true"/>    
+    <param name="/ukf_se/frequency" value="100"/>
     <param name="/ukf_se/base_link_frame" value="base_link"/>
     <param name="/ukf_se/odom0" value="/vo"/>
     <rosparam param="/ukf_se/odom0_config">[true,true,true,
@@ -108,10 +109,10 @@
 
     <param name="/ukf_se/imu0" value="/imu/data"/>
     <rosparam param="/ukf_se/imu0_config">[false, false, false,
+                                           false, false, false,
                                            true,true,true,
                                            true,true,true,
-                                           true,true,true,
-                                           true,true,true]
+                                           true,true,true,]
     </rosparam>
     <param name="/ukf_se/imu0_differential" value="true"/>
     <param name="/ukf_se/imu0_relative" value="false"/>
@@ -135,11 +136,11 @@
    <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform" respawn="true" output="screen">
       <param name="frequency" value="10"/>
       <param name="delay" value="0.1"/>
-      <param name="yaw_offset" value="0"/>
+      <param name="yaw_offset" value="0.12"/>
       <param name="zero_altitude" value="true"/>
       <param name="broadcast_utm_transform" value="true"/>
       <param name="publish_filtered_gps" value="true"/>
-      <param name="use_odometry_yaw" value="false"/>
+      <param name="use_odometry_yaw" value="true"/>
       <param name="wait_for_datum" value="false"/>
       <remap from="/odometry/filtered" to="/odometry/filtered"/>
       <remap from="/imu/data" to="/imu1/data"/>
