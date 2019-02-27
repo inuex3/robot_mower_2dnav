@@ -58,19 +58,25 @@ class Publishsers():
                 if bbox.ymin < 0:
                     bbox.ymin = 0
                 bboxes_from_camera2.bounding_boxes.append(bbox)
-        camera1_obstacle_msg, camera1_marker_data = bbox_to_object(bboxes_from_camera1, Depth1image, camera1_param)
-        camera2_obstacle_msg, camera2_marker_data = bbox_to_object(bboxes_from_camera2, Depth2image, camera2_param)
-        self.obstacle_msg.append(camera1_obstacle_msg.obstacles, camera2_obstacle_msg.obstacles)
-        
+        camera1_obstacle_msg, camera1_marker_data = self.bbox_to_position_in_odom(bboxes_from_camera1, Depth1image, camera1_param)
+        camera2_obstacle_msg, camera2_marker_data = self.bbox_to_position_in_odom(bboxes_from_camera2, Depth2image, camera2_param)
+        self.obstacle_msg.obstacles.append(camera1_obstacle_msg.obstacles)
+        self.obstacle_msg.obstacles.append(camera2_obstacle_msg.obstacles)
+        self.marker_data.markers.append(camera1_marker_data.markers)
+        self.marker_data.markers.append(camera2_marker_data.markers)
+
+    def send_msg(bboxes, DepthImage, camera_param):
+        self.publisher.publish(self.obstacle_msg)
+        self.marker_publisher.publish(self.marker_data)        
     
-    def bbox_to_object(bboxes, DepthImage, camera_param):
+    def bbox_to_position_in_odom(bboxes, DepthImage, camera_param):
         obstacle_msg = ObstacleArrayMsg() 
         marker_data = MarkerArray()
         for i, bbox in enumerate(bboxes):
             if bbox.Class in self.obstacle_list:
                 try:
                     tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1                    
-                    angle_x = math.atan(tan_angle_x) 
+                    angle_x = math.atan(tan_angle_x)
                     if abs(math.degrees(angle_x)) < 30:
                         detected_area = DepthImage[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
                         distance_x = np.median(detected_area)/1000
@@ -97,11 +103,10 @@ class Publishsers():
                             marker_data.markers[i].scale.x, marker_data.markers[i].scale.y, marker_data.markers[i].scale.z = 0.2, 0.2, 1
                             marker_data.markers[i].type = 3
                             marker_data.markers[i].lifetime = rospy.Duration.from_sec(3.0)
+                except Exception as e:
+                    print(e)
         return obstacle_msg, marker_data
-    
-    def send_msg(self):
-        self.publisher.publish(self.obstacle_msg)
-        self.marker_publisher.publish(self.marker_data)
+
 
 class Subscribe_publishers():
     def __init__(self, pub):
