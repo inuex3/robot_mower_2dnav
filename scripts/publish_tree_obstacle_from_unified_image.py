@@ -49,11 +49,11 @@ class Publishsers():
         i = 0
         for bbox in detection_data.bounding_boxes:
             if (bbox.ymin + bbox.ymax) < self.Depth1image.shape[0]:
-                bboxes_from_camera1.append(bbox)
+                bboxes_from_camera1.bounding_boxes.append(bbox)
             else:
                 bbox.ymin = bbox.ymin - self.Depth1image.shape[0]
                 bbox.ymax = bbox.ymax - self.Depth1image.shape[0]
-                bboxes_from_camera2.append(bbox)
+                bboxes_from_camera2.bounding_boxes.append(bbox)
 
         """
         for bbox in detection_data.bounding_boxes:
