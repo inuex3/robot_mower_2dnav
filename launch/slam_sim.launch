@@ -1,5 +1,5 @@
 <launch>
-  <arg name="database_path"           default="/home/ubuntu/Documents/rtabmap.db"/>
+  <arg name="database_path"           default="/media/nvidia/nvme/rtabmap.db"/>
 
   <param name="use_sim_time"          value="true"/>
   <arg name="compressed"              default="false"/>         <!-- If you want to subscribe to compressed image topics -->
