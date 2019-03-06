@@ -65,6 +65,8 @@ class Publishsers():
         camera1_marker_data, camera2_marker_data = MarkerArray(), MarkerArray()
         camera1_obstacle_msg, camera1_marker_data = self.bbox_to_position_in_odom(bboxes_from_camera1, Depth1image, camera1_param)
         camera2_obstacle_msg, camera2_marker_data = self.bbox_to_position_in_odom(bboxes_from_camera2, Depth2image, camera2_param, len(camera1_obstacle_msg.obstacles), camera1_obstacle_msg, camera1_marker_data)
+        
+        
         self.obstacle_msg.obstacles.extend(camera1_obstacle_msg.obstacles)
         self.obstacle_msg.obstacles.extend(camera2_obstacle_msg.obstacles)
         self.marker_data.markers.extend(camera1_marker_data.markers)
@@ -114,10 +116,20 @@ class Publishsers():
                     print(e)
         return obstacle_msg, marker_data
 
+    def get_obstacle(self, prev_obstacle_msg, detected_obstacle_msg):
+        self.tf_listener.waitForTransform("/odom", "/base_link", rospy.Time(0), rospy.Duration(0.1))
+        current_position = self.tf_listener.lookupTransform("/odom", "/base_link",  rospy.Time(0))        
+        for prev_obstacle in prev_obstacle_msg.obstacles:                            
+            for detected_obstacle in detected_obstacle_msg.obstacles:
+                if ((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y)) ** 0.5 < 0.5:
+                     prev_obstacle.polygon.points[0].x = (prev_obstacle.polygon.points[0].x + detected_obstacle.polygon.points[0].x) / 2
+                     prev_obstacle.polygon.points[0].y = (prev_obstacle.polygon.points[0].y + detected_obstacle.polygon.points[0].y) / 2
+            if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) > 4 and abs(current_position[0][1] - prev_obstacle.polygon.points[0].y):
+                prev_obstacle_msg.obstacles.pop(prev_obstacle)
+        return prev_obstacle
 
 class Subscribe_publishers():
     def __init__(self, pub):
-        # Subscriberを作成
         self.depth1_subscriber = message_filters.Subscriber('/camera1/aligned_depth_to_color/image_raw', Image)
         self.depth2_subscriber = message_filters.Subscriber('/camera2/aligned_depth_to_color/image_raw', Image)
         self.detection_subscriber =message_filters.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes)
