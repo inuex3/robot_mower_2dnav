@@ -17,10 +17,10 @@ class Publishsers():
         self.prev_RC_msg = OverrideRCIn()
         self.cmd_vel = Twist()
         self.prev_odom = Odometry()
-        self.gain_x = 200
+        self.gain_x = 150
         self.gain_theta = 50    
 
-    def make_msg(self, cmd_vel, odom):
+    def make_msg(self, cmd_vel):
         if (cmd_vel.angular.z > 0):
             theta = 1450
         elif (cmd_vel.angular.z < 0):
@@ -48,7 +48,6 @@ class Subscribe_publishers():
     def __init__(self, pub):
         # Subscriberを作成
         self.subscriber = rospy.Subscriber('/cmd_vel', Twist, self.callback, queue_size = 1)
-        self.odom_subscriber = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback, queue_size = 30)
         # messageの型を作成
         self.pub = pub
         self.odom = Odometry()
@@ -58,13 +57,9 @@ class Subscribe_publishers():
     def callback(self, cmd_vel):
         self.cb_time = rospy.get_time() 
         self.cmd_vel = cmd_vel       
-    
-    def odom_callback(self, odom):
-        #callback時の処理
-        self.odom = odom
 
     def send_msg(self, current_time):
-        self.pub.make_msg(self.cmd_vel, self.odom)
+        self.pub.make_msg(self.cmd_vel)
         self.pub.send_msg(current_time, self.cb_time)        
 
 def main():

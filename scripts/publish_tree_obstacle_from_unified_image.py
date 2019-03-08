@@ -65,8 +65,8 @@ class Publishsers():
         camera1_marker_data, camera2_marker_data = MarkerArray(), MarkerArray()
         camera1_obstacle_msg, camera1_marker_data = self.bbox_to_position_in_odom(bboxes_from_camera1, Depth1image, camera1_param)
         camera2_obstacle_msg, camera2_marker_data = self.bbox_to_position_in_odom(bboxes_from_camera2, Depth2image, camera2_param, len(camera1_obstacle_msg.obstacles), camera1_obstacle_msg, camera1_marker_data)
-        self.obstacle_msg.obstacles, self.marker_data.markers = self.get_obstacle(camera1_obstacle_msg, camera1_marker_data, self.obstacle_msg, self.marker_data)
-        self.obstacle_msg.obstacles, self.marker_data.markers = self.get_obstacle(camera2_obstacle_msg, camera2_marker_data, self.obstacle_msg, self.marker_data)
+        self.obstacle_msg.obstacles, self.marker_data.markers = self.get_obstacle(self.obstacle_msg, camera1_obstacle_msg, self.marker_data, camera1_marker_data)
+        self.obstacle_msg.obstacles, self.marker_data.markers = self.get_obstacle(self.obstacle_msg, camera2_obstacle_msg, self.marker_data, camera2_marker_data)
         #self.obstacle_msg.obstacles.extend(camera1_obstacle_msg.obstacles)
         #self.obstacle_msg.obstacles.extend(camera2_obstacle_msg.obstacles)
         #self.marker_data.markers.extend(camera1_marker_data.markers)
@@ -118,18 +118,21 @@ class Publishsers():
 
     def get_obstacle(self, prev_obstacle_msg, detected_obstacle_msg, prev_marker_msg, marker_msg):
         self.tf_listener.waitForTransform("/odom", "/base_link", rospy.Time(0), rospy.Duration(0.1))
-        current_position = self.tf_listener.lookupTransform("/odom", "/base_link",  rospy.Time(0))        
-        for prev_obstacle, prev_marker in zip(prev_obstacle_msg.obstacles, prev_marker_msg.markers):                            
-            for detected_obstacle, marker in zip(detected_obstacle_msg.obstacles, marker_msg.markers):
+        current_position = self.tf_listener.lookupTransform("/odom", "/base_link",  rospy.Time(0))
+        for detected_obstacle, marker in zip(detected_obstacle_msg.obstacles, marker_msg.markers): 
+            for prev_obstacle, prev_marker in zip(prev_obstacle_msg.obstacles, prev_marker_msg.markers):                            
                 if ((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y)) ** 0.5 < 0.5:
-                     prev_obstacle.polygon.points[0].x = (prev_obstacle.polygon.points[0].x + detected_obstacle.polygon.points[0].x) / 2
-                     prev_obstacle.polygon.points[0].y = (prev_obstacle.polygon.points[0].y + detected_obstacle.polygon.points[0].y) / 2
-                     prev_marker.pose.position.x = (prev_marker.pose.position.x + marker.pose.position.x) / 2
-                     prev_marker.pose.position.y = (prev_marker.pose.position.y + marker.pose.position.y) / 2                    
-            if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) > 4 and abs(current_position[0][1] - prev_obstacle.polygon.points[0].y):
-                prev_obstacle_msg.obstacles.pop(prev_obstacle)
-                prev_marker_msg.markers.pop(prev_marker)
-        return prev_obstacle, prev_marker
+                    prev_obstacle.polygon.points[0].x = (prev_obstacle.polygon.points[0].x + detected_obstacle.polygon.points[0].x) / 2
+                    prev_obstacle.polygon.points[0].y = (prev_obstacle.polygon.points[0].y + detected_obstacle.polygon.points[0].y) / 2
+                    prev_marker.pose.position.x = (prev_marker.pose.position.x + marker.pose.position.x) / 2
+                    prev_marker.pose.position.y = (prev_marker.pose.position.y + marker.pose.position.y) / 2
+                prev_obstacle_msg.obstacles.append(detected_obstacle)                    
+                prev_marker_msg.markers.append(marker)
+                print(prev_obstacle_msg)                    
+                if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) > 4 or abs(current_position[0][1] - prev_obstacle.polygon.points[0].y):
+                    prev_obstacle_msg.obstacles.pop(prev_obstacle)
+                    prev_marker_msg.markers.pop(prev_marker)
+        return prev_obstacle_msg.obstacles, prev_marker_msg.markers
 
 class Subscribe_publishers():
     def __init__(self, pub):
