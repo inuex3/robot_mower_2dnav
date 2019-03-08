@@ -65,13 +65,8 @@ class Publishsers():
         camera1_marker_data, camera2_marker_data = MarkerArray(), MarkerArray()
         camera1_obstacle_msg, camera1_marker_data = self.bbox_to_position_in_odom(bboxes_from_camera1, Depth1image, camera1_param)
         camera2_obstacle_msg, camera2_marker_data = self.bbox_to_position_in_odom(bboxes_from_camera2, Depth2image, camera2_param, len(camera1_obstacle_msg.obstacles), camera1_obstacle_msg, camera1_marker_data)
-<<<<<<< HEAD
-        self.obstacle_msg.obstacles, self.marker_data.markers = self.get_obstacle(self.obstacle_msg, camera1_obstacle_msg, self.marker_data, camera1_marker_data)
-        self.obstacle_msg.obstacles, self.marker_data.markers = self.get_obstacle(self.obstacle_msg, camera2_obstacle_msg, self.marker_data, camera2_marker_data)
-=======
         self.obstacle_msg.obstacles, self.marker_data.markers = self.combine_with_previous_obstacles(camera1_obstacle_msg, camera1_marker_data, self.obstacle_msg, self.marker_data)
         self.obstacle_msg.obstacles, self.marker_data.markers = self.combine_with_previous_obstacles(camera2_obstacle_msg, camera2_marker_data, self.obstacle_msg, self.marker_data)
->>>>>>> bb4ec5116aaa6fb92ca7c9342f1a022a93ec6ef2
         #self.obstacle_msg.obstacles.extend(camera1_obstacle_msg.obstacles)
         #self.obstacle_msg.obstacles.extend(camera2_obstacle_msg.obstacles)
         #self.marker_data.markers.extend(camera1_marker_data.markers)
