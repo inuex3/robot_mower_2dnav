@@ -24,10 +24,10 @@ TebLocalPlannerROS:
 
  footprint_model:
    type: "two_circles"
-   front_offset: 0.5 # for type "two_circles"
+   front_offset: 0.4 # for type "two_circles"
    front_radius: 0.3 # for type "two_circles"
    rear_offset: 0.0 # for type "two_circles"
-   rear_radius: 0.3 # for type "two_circles"
+   rear_radius: 0.2 # for type "two_circles"
 
  # GoalTolerance
     
@@ -37,7 +37,7 @@ TebLocalPlannerROS:
     
  # Obstacles
     
- min_obstacle_dist: 0.5 # This value must also include our robot radius, since footprint_model is set to "point".
+ min_obstacle_dist: 0.4 # This value must also include our robot radius, since footprint_model is set to "point".
  include_costmap_obstacles: True
  costmap_obstacles_behind_robot_dist: 1.5
  obstacle_poses_affected: 30
