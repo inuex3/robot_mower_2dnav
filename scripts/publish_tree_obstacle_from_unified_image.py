@@ -23,7 +23,7 @@ class Publishsers():
         self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/visualized_obstacle", MarkerArray, queue_size = 1)
         self.reset_pose = rospy.ServiceProxy('/rtabmap/reset_odom_to_pose', ResetPose)
-        self.obstacle_list = ["person", "tree"]
+        self.obstacle_list = ["person"]
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
         self.obstacle_msg = ObstacleArrayMsg() 
@@ -39,10 +39,10 @@ class Publishsers():
         self.now = rospy.get_rostime()
         self.timebefore = detection_data.header.stamp
         # Add point obstacle
-        self.obstacle_msg = ObstacleArrayMsg() 
+        #self.obstacle_msg = ObstacleArrayMsg() 
         self.obstacle_msg.header.stamp = detection_data.header.stamp
         self.obstacle_msg.header.frame_id = "odom" # CHANGE HERE: odom/map
-        self.marker_data = MarkerArray()
+        #self.marker_data = MarkerArray()
         #opencvに変換
         bridge = CvBridge()
         try:
@@ -64,14 +64,9 @@ class Publishsers():
         camera1_obstacle_msg, camera2_obstacle_msg = ObstacleArrayMsg(), ObstacleArrayMsg()
         camera1_marker_data, camera2_marker_data = MarkerArray(), MarkerArray()
         camera1_obstacle_msg, camera1_marker_data = self.bbox_to_position_in_odom(bboxes_from_camera1, Depth1image, camera1_param)
-        camera2_obstacle_msg, camera2_marker_data = self.bbox_to_position_in_odom(bboxes_from_camera2, Depth2image, camera2_param, len(camera1_obstacle_msg.obstacles), camera1_obstacle_msg, camera1_marker_data)
-        self.obstacle_msg.obstacles, self.marker_data.markers = self.combine_with_previous_obstacles(camera1_obstacle_msg, camera1_marker_data, self.obstacle_msg, self.marker_data)
-        self.obstacle_msg.obstacles, self.marker_data.markers = self.combine_with_previous_obstacles(camera2_obstacle_msg, camera2_marker_data, self.obstacle_msg, self.marker_data)
-        #self.obstacle_msg.obstacles.extend(camera1_obstacle_msg.obstacles)
-        #self.obstacle_msg.obstacles.extend(camera2_obstacle_msg.obstacles)
-        #self.marker_data.markers.extend(camera1_marker_data.markers)
-        #self.marker_data.markers.extend(camera2_marker_data.markers)
-
+        obstacle_msg, marker_data = self.bbox_to_position_in_odom(bboxes_from_camera2, Depth2image, camera2_param, len(camera1_obstacle_msg.obstacles), camera1_obstacle_msg, camera1_marker_data)
+        self.obstacle_msg.obstacles, self.marker_data.markers = self.update_obstacles(self.obstacle_msg, obstacle_msg, self.marker_data, marker_data)
+        
     def send_msg(self):
         self.publisher.publish(self.obstacle_msg)
         self.marker_publisher.publish(self.marker_data)      
@@ -93,8 +88,8 @@ class Publishsers():
                             obstacle_msg.obstacles.append(ObstacleMsg())
                             marker_data.markers.append(Marker())
                             self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), bbox.Class + str(i), bboxes.header.frame_id)
-                            self.tf_listener.waitForTransform("/odom", "/" + bbox.Class + str(i), rospy.Time(0), rospy.Duration(0.1))
-                            obstable_position = self.tf_listener.lookupTransform("odom", bbox.Class + str(i),  rospy.Time(0))
+                            self.tf_listener.waitForTransform("/odom", "/" + bbox.Class + str(i), rospy.Time(0), rospy.Duration(0.5))
+                            obstable_position = self.tf_listener.lookupTransform("/odom", bbox.Class + str(i),  rospy.Time(0))
                             obstacle_msg.obstacles[i].header.stamp, obstacle_msg.obstacles[i].header.frame_id = bboxes.header.stamp, "odom"    
                             obstacle_msg.obstacles[i].id = i
                             obstacle_msg.obstacles[i].polygon.points = [Point32()]
@@ -116,34 +111,27 @@ class Publishsers():
                     print(e)
         return obstacle_msg, marker_data
 
-    def combine_with_previous_obstacles(self, prev_obstacle_msg, detected_obstacle_msg, prev_marker_msg, marker_msg):
+    def update_obstacles(self, prev_obstacle_msg, detected_obstacle_msg, prev_marker_msg, marker_msg):
         self.tf_listener.waitForTransform("/odom", "/base_link", rospy.Time(0), rospy.Duration(0.1))
         current_position = self.tf_listener.lookupTransform("/odom", "/base_link",  rospy.Time(0))
         for detected_obstacle, marker in zip(detected_obstacle_msg.obstacles, marker_msg.markers): 
-            for prev_obstacle, prev_marker in zip(prev_obstacle_msg.obstacles, prev_marker_msg.markers):                            
-                if ((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y)) ** 0.5 < 0.5:
-<<<<<<< HEAD
-                    prev_obstacle.polygon.points[0].x = (prev_obstacle.polygon.points[0].x + detected_obstacle.polygon.points[0].x) / 2
-                    prev_obstacle.polygon.points[0].y = (prev_obstacle.polygon.points[0].y + detected_obstacle.polygon.points[0].y) / 2
-                    prev_marker.pose.position.x = (prev_marker.pose.position.x + marker.pose.position.x) / 2
-                    prev_marker.pose.position.y = (prev_marker.pose.position.y + marker.pose.position.y) / 2
-                prev_obstacle_msg.obstacles.append(detected_obstacle)                    
-                prev_marker_msg.markers.append(marker)
-                print(prev_obstacle_msg)                    
-                if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) > 4 or abs(current_position[0][1] - prev_obstacle.polygon.points[0].y):
+            updated = False
+            for prev_obstacle, prev_marker in zip(prev_obstacle_msg.obstacles, prev_marker_msg.markers):        
+                if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) > 4 or abs(current_position[0][1] - prev_obstacle.polygon.points[0].y) > 4:
                     prev_obstacle_msg.obstacles.pop(prev_obstacle)
-                    prev_marker_msg.markers.pop(prev_marker)
+                    prev_marker_msg.markers.pop(prev_marker)  
+                    break                                    
+                if ((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y)) ** 0.5 < 0.5:
+                    prev_obstacle.polygon.points[0].x = detected_obstacle.polygon.points[0].x 
+                    prev_obstacle.polygon.points[0].y = detected_obstacle.polygon.points[0].y
+                    prev_marker.pose.position.x = marker.pose.position.x 
+                    prev_marker.pose.position.y = marker.pose.position.y
+                    updated = True                  
+                break
+            if not updated:
+                prev_obstacle_msg.obstacles.append(detected_obstacle)                    
+                prev_marker_msg.markers.append(marker)                    
         return prev_obstacle_msg.obstacles, prev_marker_msg.markers
-=======
-                     prev_obstacle.polygon.points[0].x = (prev_obstacle.polygon.points[0].x + detected_obstacle.polygon.points[0].x) / 2
-                     prev_obstacle.polygon.points[0].y = (prev_obstacle.polygon.points[0].y + detected_obstacle.polygon.points[0].y) / 2
-                     prev_marker.pose.position.x = (prev_marker.pose.position.x + marker.pose.position.x) / 2
-                     prev_marker.pose.position.y = (prev_marker.pose.position.y + marker.pose.position.y) / 2                    
-            if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) > 4 or abs(current_position[0][1] - prev_obstacle.polygon.points[0].y):
-                prev_obstacle_msg.obstacles.pop(prev_obstacle)
-                prev_marker_msg.markers.pop(prev_marker)
-        return prev_obstacle, prev_marker
->>>>>>> bb4ec5116aaa6fb92ca7c9342f1a022a93ec6ef2
 
 class Subscribe_publishers():
     def __init__(self, pub):

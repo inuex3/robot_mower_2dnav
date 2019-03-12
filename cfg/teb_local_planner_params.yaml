@@ -84,4 +84,4 @@ TebLocalPlannerROS:
  visualize_hc_graph: False
 
  #Viapoint
- global_plan_viapoint_sep: 1.0
+ global_plan_viapoint_sep: 0.5
