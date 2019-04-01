@@ -9,7 +9,7 @@ heatmap https://github.com/eybee/heatmap
 # Way Point generator usage
 run  
 rosrun robot_mower_2dnav heatmap_client  
-and
+and  
 rosrun robot_mower_2dnav path_planner.py  
 Draw a geometrycal figure with publish_point
  
