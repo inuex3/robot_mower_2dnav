@@ -1,0 +1,5 @@
+<launch>
+  <include file="$(find darknet_ros)/launch/yolov3test.launch" />
+  <node name="unify_two" pkg="robot_mower_2dnav" type="unify_two_image.py" respawn="false" output="screen"/>
+  <node name="publish_obstacle" pkg="robot_mower_2dnav" type="publish_tree_obstacle_from_unified_image.py" respawn="false" output="screen"/>  
+</launch>
