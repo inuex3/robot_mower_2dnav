@@ -84,7 +84,7 @@ class Publishsers():
                         detected_area = DepthImage[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
                         distance_x = np.median(detected_area)/1000
                         distance_y = - distance_x * tan_angle_x
-                        if distance_x < 4:
+                        if distance_x < 4 and distance_x > 1.5:
                             obstacle_msg.obstacles.append(ObstacleMsg())
                             marker_data.markers.append(Marker())
                             self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), bbox.Class + str(i), bboxes.header.frame_id)

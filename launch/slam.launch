@@ -1,5 +1,4 @@
 <launch>
-  <include file="$(find realsense2_camera)/launch/two.launch" />
   <include file="$(find mavros)/launch/apm2.launch" />
   <arg name="database_path"           default="/media/nvidia/nvme/rtabmap_database/rtabmap.db"/>
   <arg name="compressed"              default="false"/>         <!-- If you want to subscribe to compressed image topics -->
