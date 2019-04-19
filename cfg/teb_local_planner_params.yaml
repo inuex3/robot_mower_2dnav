@@ -10,24 +10,20 @@ TebLocalPlannerROS:
  global_plan_overwrite_orientation: False
  allow_init_with_backwards_motion: True
  max_global_plan_lookahead_dist: 3.0
- feasibility_check_no_poses: 2
+ feasibility_check_no_poses: 0
     
  # Robot
          
- max_vel_x: 0.5
- max_vel_x_backwards: 0.5
+ max_vel_x: 0.6
+ max_vel_x_backwards: 0.6
  max_vel_y: 0.0
- max_vel_theta: 0.3
- acc_lim_x: 0.5
- acc_lim_theta: 0.5
- min_turning_radius: 0.0 # diff-drive robot (can turn on place!)
+ max_vel_theta: 0.8
+ acc_lim_x: 0.4
+ acc_lim_theta: 0.8
+ min_turning_radius: 0.2 # diff-drive robot (can turn on place!)
 
  footprint_model:
-   type: "two_circles"
-   front_offset: 0.4 # for type "two_circles"
-   front_radius: 0.3 # for type "two_circles"
-   rear_offset: 0.0 # for type "two_circles"
-   rear_radius: 0.2 # for type "two_circles"
+   type: "point"
 
  # GoalTolerance
     
@@ -37,10 +33,10 @@ TebLocalPlannerROS:
     
  # Obstacles
     
- min_obstacle_dist: 0.2 # This value must also include our robot radius, since footprint_model is set to "point".
+ min_obstacle_dist: 0.5 # This value must also include our robot radius, since footprint_model is set to "point".
  include_costmap_obstacles: True
  costmap_obstacles_behind_robot_dist: 1.5
- obstacle_poses_affected: 30
+ obstacle_poses_affected: 10
  costmap_converter_plugin: ""
  costmap_converter_spin_thread: True
  costmap_converter_rate: 5
@@ -62,7 +58,7 @@ TebLocalPlannerROS:
  weight_optimaltime: 1
  weight_obstacle: 150
  weight_dynamic_obstacle: 10 # not in use yet
- weight_viapoint: 30
+ weight_viapoint: 5
  weight_adapt_factor: 2
 
  # Homotopy Class Planner
@@ -70,7 +66,7 @@ TebLocalPlannerROS:
  enable_homotopy_class_planning: True
  enable_multithreading: True
  simple_exploration: False
- max_number_classes: 4
+ max_number_classes: 2
  selection_cost_hysteresis: 1.0
  selection_obst_cost_scale: 1.0
  selection_alternative_time_cost: False
@@ -84,4 +80,4 @@ TebLocalPlannerROS:
  visualize_hc_graph: False
 
  #Viapoint
- global_plan_viapoint_sep: 0.3
+ global_plan_viapoint_sep: 1.5

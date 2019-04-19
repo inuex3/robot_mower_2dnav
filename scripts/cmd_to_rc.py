@@ -17,8 +17,8 @@ class Publishsers():
         self.prev_RC_msg = OverrideRCIn()
         self.cmd_vel = Twist()
         self.prev_odom = Odometry()
-        self.gain_x = 150
-        self.gain_theta = 80    
+        self.gain_x = 120
+        self.gain_theta = 50    
 
     def make_msg(self, cmd_vel):
         if (cmd_vel.angular.z > 0):

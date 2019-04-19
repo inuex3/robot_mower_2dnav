@@ -83,8 +83,11 @@ class Publishsers():
                     if abs(math.degrees(angle_x)) < 40:
                         detected_area = DepthImage[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
                         distance_x = np.median(detected_area)/1000
+                        distance_x = distance_x + 0.15
                         distance_y = - distance_x * tan_angle_x
-                        if distance_x < 4 and distance_x > 1.5:
+                        print(distance_x)
+                        if 1.0 < distance_x < 4.0:
+                            print("b")
                             obstacle_msg.obstacles.append(ObstacleMsg())
                             marker_data.markers.append(Marker())
                             self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), bbox.Class + str(i), bboxes.header.frame_id)
@@ -96,7 +99,7 @@ class Publishsers():
                             obstacle_msg.obstacles[i].polygon.points[0].x = obstable_position[0][0]
                             obstacle_msg.obstacles[i].polygon.points[0].y = obstable_position[0][1]
                             obstacle_msg.obstacles[i].polygon.points[0].z = obstable_position[0][2]
-                            obstacle_msg.obstacles[i].radius = 0.15  
+                            #obstacle_msg.obstacles[i].radius = 0.15  
                             marker_data.markers[i].header.stamp, marker_data.markers[i].header.frame_id = bboxes.header.stamp, "odom"     
                             marker_data.markers[i].ns, marker_data.markers[i].id = bbox.Class, i
                             marker_data.markers[i].action = Marker.ADD
@@ -121,7 +124,7 @@ class Publishsers():
                     prev_obstacle_msg.obstacles.pop(prev_obstacle)
                     prev_marker_msg.markers.pop(prev_marker)  
                     break                                    
-                if ((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y)) ** 0.5 < 0.5:
+                if ((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y)) ** 0.5 < 1.0:
                     prev_obstacle.polygon.points[0].x = detected_obstacle.polygon.points[0].x 
                     prev_obstacle.polygon.points[0].y = detected_obstacle.polygon.points[0].y
                     prev_marker.pose.position.x = marker.pose.position.x 
