@@ -90,13 +90,13 @@ class Publishsers():
                     detected_area = DepthImage[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
                     distance_x = np.median(detected_area)/1000
                     distance_x = distance_x + 0.15
+                    if bboxes.header.frame_id == "camera2_color_optical_frame":
+                        distance_x = - distance_x
                     distance_y = - distance_x * tan_angle_x
-                    print(distance_x)
                     if 1.0 < distance_x < 3.0:
                         self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(),bbox.Class ,bboxes.header.frame_id)
-                        self.tf_listener.waitForTransform("/base_link", "/" + bbox.Class, rospy.Time(0), rospy.Duration(0.2))
+                        self.tf_listener.waitForTransform("/base_link", "/" + bbox.Class, rospy.Time(0), rospy.Duration(0.1))
                         landmark_position = self.tf_listener.lookupTransform("/base_link", bboxes.header.frame_id, rospy.Time(0))
-                        print(landmark_position)
                         self.landmark_msg.detections[0].id = [1]
                         self.landmark_msg.detections[0].size = [0.3]
                         self.landmark_msg.detections[0].pose.header = bboxes.header
