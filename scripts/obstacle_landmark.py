@@ -108,6 +108,34 @@ class Publishsers():
                             i = i + 1
                 except Exception as e:
                     print(e)
+            if bbox.Class in self.landmark_list:
+                try:
+                    tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1 
+                    angle_x = math.atan(tan_angle_x)
+                    if abs(math.degrees(angle_x)) < 40:
+                        detected_area = DepthImage[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
+                        distance_x = np.median(detected_area)/1000
+                        distance_x = distance_x + 0.15
+                        distance_y = - distance_x * tan_angle_x
+                    if bboxes.header.frame_id == "camera2_color_optical_frame":
+                        distance_x = - distance_x
+                    distance_y = - distance_x * tan_angle_x
+                    if 1.0 < distance_x < 3.0:
+                        self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(),bbox.Class ,bboxes.header.frame_id)
+                        self.tf_listener.waitForTransform("/base_link", "/" + bbox.Class, rospy.Time(0), rospy.Duration(0.1))
+                        landmark_position = self.tf_listener.lookupTransform("/base_link", bboxes.header.frame_id, rospy.Time(0))
+                        self.landmark_msg.detections[0].id = [1]
+                        self.landmark_msg.detections[0].size = [0.3]
+                        self.landmark_msg.detections[0s].pose.header = bboxes.header
+                        self.landmark_msg.detections[0].pose.header.frame_id = bbox.Class
+                        self.landmark_msg.detections[0].pose.pose.pose.position.x = landmark_position[0][0]
+                        self.landmark_msg.detections[0].pose.pose.pose.position.y = landmark_position[0][1]
+                        self.landmark_msg.detections[0].pose.pose.pose.position.z = landmark_position[0][2]
+                        self.landmark_msg.detections[0].pose.pose.covariance = [(self.landmark_msg.detections[0].pose.pose.pose.position.x*0.01) * (self.landmark_msg.detections[0].pose.pose.pose.position.x*0.01), 0.0 ,0.0, 0.0, 0.0 ,0.0, 0.0, 9999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, (self.landmark_msg.detections[0].pose.pose.pose.position.z*0.01) * (self.landmark_msg.detections[0].pose.pose.pose.position.z*0.01) ,0.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 9999.0, 0.0 ,0.0, 0.0, 0.0, 0.0, 0.0, 9999.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 0.0, 9999]
+                        self.landmark_publisher.publish(self.landmark_msg)    
+                            i = i + 1
+                except Exception as e:
+                    print(e)
         return obstacle_msg, marker_data
 
     def update_obstacles(self, prev_obstacle_msg, detected_obstacle_msg, prev_marker_msg, marker_msg):
