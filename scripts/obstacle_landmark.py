@@ -11,7 +11,6 @@ from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point32
 import numpy as np
 from darknet_ros_msgs.msg import BoundingBoxes,BoundingBox
-from rtabmap_ros.srv import ResetPose
 import tf
 import cv2
 import math
@@ -22,7 +21,9 @@ class Publishsers():
         # Publisherを作成
         self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/visualized_obstacle", MarkerArray, queue_size = 1)
+        self.landmark_publisher = rospy.Publisher("/rtabmap/tag_detections", AprilTagDetectionArray, queue_size = 1)
         self.obstacle_list = ["person"]
+        self.landmark_list = ["landmark"]
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
         self.obstacle_msg = ObstacleArrayMsg() 
@@ -88,7 +89,7 @@ class Publishsers():
                             obstacle_msg.obstacles.append(ObstacleMsg())
                             marker_data.markers.append(Marker())
                             self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), bbox.Class + str(i), bboxes.header.frame_id)
-                            self.tf_listener.waitForTransform("/odom", "/" + bbox.Class + str(i), rospy.Time(0), rospy.Duration(0.5))
+                            self.tf_listener.waitForTransform("/odom", "/" + bbox.Class + str(i), rospy.Time(0), rospy.Duration(0.3))
                             obstable_position = self.tf_listener.lookupTransform("/odom", bbox.Class + str(i),  rospy.Time(0))
                             obstacle_msg.obstacles[i].header.stamp, obstacle_msg.obstacles[i].header.frame_id = bboxes.header.stamp, "odom"    
                             obstacle_msg.obstacles[i].id = i
@@ -100,10 +101,38 @@ class Publishsers():
                             marker_data.markers[i].ns, marker_data.markers[i].id = bbox.Class, i
                             marker_data.markers[i].action = Marker.ADD
                             marker_data.markers[i].pose.position.x, marker_data.markers[i].pose.position.y, marker_data.markers[i].pose.position.z = obstable_position[0][0], obstable_position[0][1], obstable_position[0][2]
-                            marker_data.markers[i].pose.orientation.x, marker_data.markers[i].pose.orientation.y, marker_data.markers[i].pose.orientation.z, marker_data.markers[i].pose.orientation.w= tf.transformations.quaternion_from_euler(0, 0, 0)
+                            marker_data.markers[i].pose.orientation.x, marker_data.markers[i].pose.orientation.y, marker_data.markers[i].pose.orientation.z, marker_data.markers[i].pose.orientation.w= tf.transformations.quaternion_from_euler(0, 0, 0) 
                             marker_data.markers[i].color.r, marker_data.markers[i].color.g, marker_data.markers[i].color.b, marker_data.markers[i].color.a = 1, 0, 0, 1
                             marker_data.markers[i].scale.x, marker_data.markers[i].scale.y, marker_data.markers[i].scale.z = 0.2, 0.2, 1
                             marker_data.markers[i].type = 3
+                            i = i + 1
+                except Exception as e:
+                    print(e)
+            if bbox.Class in self.landmark_list:
+                try:
+                    tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1 
+                    angle_x = math.atan(tan_angle_x)
+                    if abs(math.degrees(angle_x)) < 40:
+                        detected_area = DepthImage[bbox.ymin:bbox.ymax,  bbox.xmin:bbox.xmax]
+                        distance_x = np.median(detected_area)/1000
+                        distance_x = distance_x + 0.15
+                        distance_y = - distance_x * tan_angle_x
+                    if bboxes.header.frame_id == "camera2_color_optical_frame":
+                        distance_x = - distance_x
+                    distance_y = - distance_x * tan_angle_x
+                    if 1.0 < distance_x < 3.0:
+                        self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(),bbox.Class ,bboxes.header.frame_id)
+                        self.tf_listener.waitForTransform("/base_link", "/" + bbox.Class, rospy.Time(0), rospy.Duration(0.1))
+                        landmark_position = self.tf_listener.lookupTransform("/base_link", bboxes.header.frame_id, rospy.Time(0))
+                        self.landmark_msg.detections[0].id = [1]
+                        self.landmark_msg.detections[0].size = [0.3]
+                        self.landmark_msg.detections[0s].pose.header = bboxes.header
+                        self.landmark_msg.detections[0].pose.header.frame_id = bbox.Class
+                        self.landmark_msg.detections[0].pose.pose.pose.position.x = landmark_position[0][0]
+                        self.landmark_msg.detections[0].pose.pose.pose.position.y = landmark_position[0][1]
+                        self.landmark_msg.detections[0].pose.pose.pose.position.z = landmark_position[0][2]
+                        self.landmark_msg.detections[0].pose.pose.covariance = [(self.landmark_msg.detections[0].pose.pose.pose.position.x*0.01) * (self.landmark_msg.detections[0].pose.pose.pose.position.x*0.01), 0.0 ,0.0, 0.0, 0.0 ,0.0, 0.0, 9999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, (self.landmark_msg.detections[0].pose.pose.pose.position.z*0.01) * (self.landmark_msg.detections[0].pose.pose.pose.position.z*0.01) ,0.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 9999.0, 0.0 ,0.0, 0.0, 0.0, 0.0, 0.0, 9999.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 0.0, 9999]
+                        self.landmark_publisher.publish(self.landmark_msg)    
                             i = i + 1
                 except Exception as e:
                     print(e)

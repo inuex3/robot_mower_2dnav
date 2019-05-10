@@ -1,0 +1,2 @@
+rosrun image_transport republish compressed in:=/camera1/color/image_raw raw out:=/compressed_image _image_transport:=compressed
+rosrun image_transport republish compressed in:=/camera1/color/image_raw raw out:=/compressed_image _image_transport:=compressed
