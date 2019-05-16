@@ -110,15 +110,16 @@ Visualization Manager:
           odom:
             base_link:
               camera1_color_optical_frame:
-                camera_imu_frame:
-                  {}
+                {}
               camera2_color_optical_frame:
                 {}
+            camera_imu_frame:
+              {}
       Update Interval: 0
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /darknet_ros/detection_image
+      Image Topic: /camera1/color/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -226,7 +227,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10.226198196411133
+      Distance: 21.159908294677734
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -241,10 +242,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6047967672348022
+      Pitch: 0.484796941280365
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 6.2110137939453125
+      Yaw: 3.739657163619995
     Saved: ~
 Window Geometry:
   Displays:
@@ -264,5 +265,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1389
-  X: 373
-  Y: 223
+  X: 359
+  Y: 226
