@@ -14,6 +14,7 @@
       args="-0.25 0.0 0.92 1.570796327 0.0 -1.570796327  base_link camera2_color_optical_frame 100" />
   <node pkg="tf" type="static_transform_publisher" name="camera_imu_tf"
       args="0 0 0 0 0 0 camera1_color_optical_frame camera_imu_frame 100" />-->
+
    <group ns="camera1">
     <node pkg="nodelet" type="nodelet" name="nodelet_manager1" args="manager" />
     <node pkg="nodelet" type="nodelet" name="rgbd_sync1" args="load rtabmap_ros/rgbd_sync nodelet_manager1">
@@ -78,7 +79,6 @@
       <param name="RGBD/ProximityPathFilteringRadius" type="double"   value="1" /> 
       <param name="Grid/MaxGroundHeight" type="double" value="9999" />
       <param name="Grid/MinGroundHeight" type="double" value="-9999" />
-      <param name="Optimizer/Slam2D" value="true" />
       <param name="grid_cell_size" type="double" value="0.10" />
       <param name="Optimizer/PriorsIgnored" value="False"/>       
       <param name="database_path"        type="string" value="$(arg database_path)"/>
@@ -96,11 +96,11 @@
 
     <include file="$(find robot_localization)/launch/ukf_template.launch"/>
     <param name="/ukf_se/frequency" value="300"/>
-    <param name="two_d_mode" value="True"/>
+    <param name="/ukf_se/two_d_mode" value="True"/>
     <param name="/ukf_se/base_link_frame" value="base_link"/>
     <param name="/ukf_se/odom0" value="/vo"/>
     <rosparam param="/ukf_se/odom0_config">[false, false, false,
-                                            false, false, false,
+                                           false, false, false,
                                             true,true,true,
                                             false, false, false,
                                             false, false, false]
