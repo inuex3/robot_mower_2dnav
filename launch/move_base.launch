@@ -8,9 +8,9 @@
   - rviz view
  -->
 <launch>
-  <remap from="map" to="/rtabmap/grid_map"/>
   <remap from="odom" to="/odometry/filtered"/>
   <arg name="cutting_spacing" default="0.4" />
+  <arg name="map_file" default="$(find robot_mower_2dnav)/cfg/map.yaml"/>
         <!--  ************** Navigation ***************  -->
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
   	  	<rosparam file="$(find robot_mower_2dnav)/cfg/costmap_common_params.yaml" command="load" ns="global_costmap" />
@@ -28,7 +28,8 @@
 		<param name="controller_frequency" value="5.0" />
 		<param name="controller_patience" value="15.0" />
 	</node>
-
-<node name="cmd_to_rc" pkg="robot_mower_2dnav" type="cmd_to_rc.py" respawn="false" output="screen"/>
-
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+    <node name="cmd_to_rc" pkg="robot_mower_2dnav" type="cmd_to_rc.py" respawn="false" output="screen"/>
+    <node name="heatmap" pkg="robot_mower_2dnav" type="heatmap_client" respawn="false" output="screen"/>
+    <node name="waypoint" pkg="robot_mower_2dnav" type="path_planner.py" respawn="false" output="screen"/>
 </launch>

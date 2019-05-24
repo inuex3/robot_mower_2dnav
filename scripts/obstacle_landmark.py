@@ -4,7 +4,7 @@
 import rospy
 from geometry_msgs.msg import Twist
 import message_filters
-from sensor_msgs.msg import Image,CameraInfo
+from sensor_msgs.msg import Image,CameraInfo, NavSatFix
 from cv_bridge import CvBridge, CvBridgeError
 from costmap_converter.msg import ObstacleArrayMsg, ObstacleMsg
 from visualization_msgs.msg import Marker, MarkerArray
@@ -22,7 +22,8 @@ class Publishsers():
         self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/visualized_obstacle", MarkerArray, queue_size = 1)
         self.landmark_publisher = rospy.Publisher("/rtabmap/tag_detections", AprilTagDetectionArray, queue_size = 1)
-        self.obstacle_list = ["person"]
+        self.landmark_publisher = rospy.Publisher("/rtabmap/gps/fix", NavSatFix, queue_size = 1)
+        self.obstacle_list = ["person", "tree", "landmark"]
         self.landmark_list = ["landmark"]
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
@@ -40,10 +41,8 @@ class Publishsers():
         self.now = rospy.get_rostime()
         self.timebefore = detection_data.header.stamp
         # Add point obstacle
-        #self.obstacle_msg = ObstacleArrayMsg() 
         self.obstacle_msg.header.stamp = detection_data.header.stamp
         self.obstacle_msg.header.frame_id = "odom" # CHANGE HERE: odom/map
-        #self.marker_data = MarkerArray()
         #opencvに変換
         bridge = CvBridge()
         try:
@@ -120,11 +119,11 @@ class Publishsers():
                         distance_x = np.median(detected_area)/1000
                         distance_x = distance_x + 0.15
                         distance_y = - distance_x * tan_angle_x
-                    if bboxes.header.frame_id == "camera2_color_optical_frame":
+                    if bboxes.header.frame_id == DepthImage.header.frame_id:
                         distance_x = - distance_x
                     distance_y = - distance_x * tan_angle_x
                     if 1.0 < distance_x < 3.0:
-                        obstacle_msg.obstacles.append(ObstacleMsg())
+                        self.landmark_msg.detections.append(AprilTagDetection())
                         self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(),bbox.Class ,bboxes.header.frame_id)
                         self.tf_listener.waitForTransform("/base_link", "/" + bbox.Class, rospy.Time(0), rospy.Duration(0.1))
                         landmark_position = self.tf_listener.lookupTransform("/base_link", bboxes.header.frame_id, rospy.Time(0))
@@ -193,7 +192,8 @@ class Subscribe_publishers():
         self.pub.send_msg()
 
 def main():
-    # nodeの立ち上げ
+    # nodeの立ち上げ                        self.landmark_msg.detections[j].pose.pose.covariance = [(self.landmark_msg.detections[j].pose.pose.pose.position.x*0.01) * (self.landmark_msg.detections[j].pose.pose.pose.position.x*0.01), 0.0 ,0.0, 0.0, 0.0 ,0.0, 0.0, 9999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, (self.landmark_msg.detections[j].pose.pose.pose.position.z*0.01) * (self.landmark_msg.detections[j].pose.pose.pose.position.z*0.01) ,0.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 9999.0, 0.0 ,0.0, 0.0, 0.0, 0.0, 0.0, 9999.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 0.0, 9999]
+
     rospy.init_node('publish_obstacle_and_landmark')
 
     # クラスの作成
@@ -204,4 +204,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
