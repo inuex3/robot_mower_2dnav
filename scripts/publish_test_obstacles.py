@@ -22,36 +22,29 @@ def publish_obstacle_msg():
   obstacle_msg.obstacles[0].id = 0
   obstacle_msg.obstacles[0].polygon.points = [Point32()]
   obstacle_msg.obstacles[0].polygon.points[0].x = 5
-  obstacle_msg.obstacles[0].polygon.points[0].y = 3
+  obstacle_msg.obstacles[0].polygon.points[0].y = 2
   obstacle_msg.obstacles[0].polygon.points[0].z = 0
 
   obstacle_msg.obstacles.append(ObstacleMsg())
   obstacle_msg.obstacles[1].id = 1
   obstacle_msg.obstacles[1].polygon.points = [Point32()]
   obstacle_msg.obstacles[1].polygon.points[0].x = 5
-  obstacle_msg.obstacles[1].polygon.points[0].y = 5
+  obstacle_msg.obstacles[1].polygon.points[0].y = 4
   obstacle_msg.obstacles[1].polygon.points[0].z = 0
 
   obstacle_msg.obstacles.append(ObstacleMsg())
   obstacle_msg.obstacles[2].id = 2
   obstacle_msg.obstacles[2].polygon.points = [Point32()]
   obstacle_msg.obstacles[2].polygon.points[0].x = 5
-  obstacle_msg.obstacles[2].polygon.points[0].y = 7
+  obstacle_msg.obstacles[2].polygon.points[0].y = 6
   obstacle_msg.obstacles[2].polygon.points[0].z = 0
 
   obstacle_msg.obstacles.append(ObstacleMsg())
   obstacle_msg.obstacles[3].id = 3
   obstacle_msg.obstacles[3].polygon.points = [Point32()]
   obstacle_msg.obstacles[3].polygon.points[0].x = 5
-  obstacle_msg.obstacles[3].polygon.points[0].y = 9
+  obstacle_msg.obstacles[3].polygon.points[0].y = 8
   obstacle_msg.obstacles[3].polygon.points[0].z = 0
-
-  obstacle_msg.obstacles.append(ObstacleMsg())
-  obstacle_msg.obstacles[4].id = 4
-  obstacle_msg.obstacles[4].polygon.points = [Point32()]
-  obstacle_msg.obstacles[4].polygon.points[0].x = 5
-  obstacle_msg.obstacles[4].polygon.points[0].y = 11
-  obstacle_msg.obstacles[4].polygon.points[0].z = 0
 
   r = rospy.Rate(10) # 10hz
   t = 0.0

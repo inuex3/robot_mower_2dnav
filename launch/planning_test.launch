@@ -8,24 +8,24 @@
   - rviz view
  -->
 <launch>
-
+        <remap from="/odom" to="/base_pose_ground_truth" />
         <!--  ************** Global Parameters ***************  -->
         <param name="/use_sim_time" value="true"/>
 
         <!--  ************** Stage Simulator ***************  -->
-	<node pkg="stage_ros" type="stageros" name="stageros" args="$(find teb_local_planner_tutorials)/stage/maze_diff_drive.world">
+	<node pkg="stage_ros" type="stageros" name="stageros" args="$(find robot_mower_2dnav)/stage/maze_diff_drive.world">
 		<remap from="base_scan" to="scan"/>
   	</node>
 
         <!--  ************** Navigation ***************  -->
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-  	  	<rosparam file="$(find teb_local_planner_tutorials)/cfg/diff_drive/costmap_common_params.yaml" command="load" ns="global_costmap" />
-  	 	<rosparam file="$(find teb_local_planner_tutorials)/cfg/diff_drive/costmap_common_params.yaml" command="load" ns="local_costmap" />
-  		<rosparam file="$(find teb_local_planner_tutorials)/cfg/diff_drive/local_costmap_params.yaml" command="load" />
-  		<rosparam file="$(find teb_local_planner_tutorials)/cfg/diff_drive/global_costmap_params.yaml" command="load" />
-  		<rosparam file="$(find teb_local_planner_tutorials)/cfg/diff_drive/teb_local_planner_params.yaml" command="load" />
+  	  	<rosparam file="$(find robot_mower_2dnav)/cfg/costmap_common_params.yaml" command="load" ns="global_costmap" />
+  	 	<rosparam file="$(find robot_mower_2dnav)/cfg/costmap_common_params.yaml" command="load" ns="local_costmap" />
+  		<rosparam file="$(find robot_mower_2dnav)/cfg/local_costmap_params.yaml" command="load" />
+  		<rosparam file="$(find robot_mower_2dnav)/cfg/global_costmap_params.yaml" command="load" />
+  		<rosparam file="$(find robot_mower_2dnav)/cfg/teb_local_planner_params.yaml" command="load" />
 
-		<param name="base_global_planner" value="carrot_planner/CarrotPlanner" />
+		<param name="base_global_planner" value="mowing_planner/MowingPlanner" />
 		<param name="planner_frequency" value="1.0" />
 		<param name="planner_patience" value="5.0" />
 
@@ -36,12 +36,12 @@
 
 
 	<!--  ****** Maps *****  -->
-	<node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/maze.yaml" output="screen">
+	<node name="map_server" pkg="map_server" type="map_server" args="$(find robot_mower_2dnav)/cfg/maps/maze.yaml" output="screen">
 		<param name="frame_id" value="map"/>
 	</node>
 
 	<node pkg="amcl" type="amcl" name="amcl" output="screen">
-		<rosparam file="$(find teb_local_planner_tutorials)/cfg/amcl_params.yaml" command="load" />
+		<rosparam file="$(find robot_mower_2dnav)/cfg/amcl_params.yaml" command="load" />
 
 	        <param name="initial_pose_x"            value="2"/>
 		<param name="initial_pose_y"            value="2"/>
@@ -49,9 +49,9 @@
 	</node>
 
 	  <!--  **************** Visualisation ****************  -->
-	  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find teb_local_planner_tutorials)/cfg/rviz_navigation.rviz"/>
+	  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_mower_2dnav)/cfg/rviz_navigation.rviz"/>
 
 	<node pkg="robot_mower_2dnav" type="path_planner.py" name="path"/>
 	<node pkg="robot_mower_2dnav" type="heatmap_client" name="heatmap"/>
-	<node pkg="teb_local_planner_tutorials" type="publish_test_obstacles.py" name="publish_test_obstacles"/>
+	<node pkg="robot_mower_2dnav" type="publish_test_obstacles.py" name="publish_test_obstacles"/>
 </launch>
