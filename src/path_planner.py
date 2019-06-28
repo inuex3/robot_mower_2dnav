@@ -61,7 +61,7 @@ class PathPlannerNode(object):
         self.path_marker_pub = rospy.Publisher('visualization_marker',
                                                MarkerArray,
                                                latch=True)
-        rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
+        rospy.Subscriber('/odom', Odometry, self.odom_callback)
 
         # Setup initial variables
         self.field_shape = None
@@ -126,15 +126,15 @@ class PathPlannerNode(object):
         a series of waypoints.
         """
         # Get the rotation to align with the longest edge of the polygon
-        from automow_planning.maptools import rotation_tf_from_longest_edge, RotationTransform
+        from maptools import rotation_tf_from_longest_edge, RotationTransform
         rotation = rotation_tf_from_longest_edge(field_polygon)
         rotation = RotationTransform(rotation.angle + degrees)
         # Rotate the field polygon
         print "Rotate the field polygon"
-        from automow_planning.maptools import rotate_polygon_from, rotate_polygon_to
+        from maptools import rotate_polygon_from, rotate_polygon_to
         transformed_field_polygon = rotate_polygon_from(field_polygon, rotation)
         # Decompose the rotated field into a series of waypoints
-        from automow_planning.coverage import decompose
+        from coverage import decompose
         print origin
         if origin is not None:
             point_mat = np.mat([[origin[0], origin[1], 0]], dtype='float64').transpose()
@@ -145,7 +145,7 @@ class PathPlannerNode(object):
                                      origin=(origin[0], origin[1]),
                                      width=self.cut_spacing)
         # Rotate the transformed path back into the source frame
-        from automow_planning.maptools import rotate_from, rotate_to
+        from maptools import rotate_from, rotate_to
         self.path = rotate_to(np.array(transformed_path), rotation)
         # Calculate headings and extend the waypoints with them
         self.path = self.calculate_headings(self.path, rotation)
@@ -420,6 +420,7 @@ class PathPlannerNode(object):
             self.current_destination = destination
             self.move_base_client.send_goal(destination)
             if self.current_distance < self.cut_spacing + 0.1:
+                rospy.sleep(0.1)
                 self.move_base_client.cancel_goal()
             self.previous_destination = destination
         # If the status is visiting, then we just need to monitor the status

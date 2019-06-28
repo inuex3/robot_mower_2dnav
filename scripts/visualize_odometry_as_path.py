@@ -18,7 +18,7 @@ def odom1_cb(data):
     path1.header = data.header
     pose = PoseStamped()
     pose.header = data.header
-    pose.header.frame_id = "odom"
+    pose.header.frame_id = 'map'
     pose.pose.position.x = data.pose.pose.position.x
     pose.pose.position.y = data.pose.pose.position.y
     path1.poses.append(pose)
@@ -27,8 +27,8 @@ def odom1_cb(data):
 def odom2_cb(data):
     global path2
     global num
-    data.pose.pose.position.x = data.pose.pose.position.x * 0.76
-    data.pose.pose.position.y = data.pose.pose.position.y * 0.76
+    data.pose.pose.position.x = data.pose.pose.position.x + 2.0
+    data.pose.pose.position.y = data.pose.pose.position.y + 2.0
     if num % 10 == 0:
         path2.header = data.header
         pose = PoseStamped()
@@ -63,8 +63,8 @@ def odom4_cb(data):
     num3 = num3 + 1
 
 rospy.init_node('path_node')
-odom_sub = rospy.Subscriber('/odometry/gps', Odometry, odom1_cb)
-odom2_sub = rospy.Subscriber('/odometry/filtered', Odometry, odom2_cb)
+odom_sub = rospy.Subscriber('/base_pose_ground_truth', Odometry, odom1_cb)
+odom2_sub = rospy.Subscriber('/odom', Odometry, odom2_cb)
 odom3_sub = rospy.Subscriber('/vo', Odometry, odom3_cb)
 odom4_sub = rospy.Subscriber('/vo2', Odometry, odom4_cb)
 odom_pub = rospy.Publisher('/odom_0.7', Path, queue_size=1)
