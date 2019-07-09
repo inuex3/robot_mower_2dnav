@@ -133,7 +133,7 @@
    <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform" respawn="true">
       <param name="frequency" value="10"/>
       <param name="delay" value="0.1"/>
-      <param name="yaw_offset" value="0.12"/>
+      <param name="yaw_offset" value="0.0"/>
       <param name="zero_altitude" value="true"/>
       <param name="broadcast_utm_transform" value="true"/>
       <param name="publish_filtered_gps" value="true"/>

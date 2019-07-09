@@ -11,7 +11,7 @@ path4 = Path()
 num = 0
 num2 = 0
 num3 = 0
-
+prev_odom = Odometry()
 
 def odom1_cb(data):
     global path1
@@ -27,16 +27,16 @@ def odom1_cb(data):
 def odom2_cb(data):
     global path2
     global num
-    data.pose.pose.position.x = data.pose.pose.position.x + 2.0
-    data.pose.pose.position.y = data.pose.pose.position.y + 2.0
-    if num % 10 == 0:
-        path2.header = data.header
-        pose = PoseStamped()
-        pose.header = data.header
-        pose.pose = data.pose.pose
+    global prev_odom
+    path2.header = data.header
+    pose = PoseStamped()
+    pose.header = data.header
+    pose.pose = data.pose.pose
+    if prev_odom.pose.pose.position.x + prev_odom.pose.pose.position.y - (data.pose.pose.position.x + data.pose.pose.position.y) < 10:
         path2.poses.append(pose)
-        path2_pub.publish(path2)
+    path2_pub.publish(path2)
     num = num + 1
+    prev_odom = data
 
 def odom3_cb(data):
     global path3
@@ -64,10 +64,8 @@ def odom4_cb(data):
 
 rospy.init_node('path_node')
 odom_sub = rospy.Subscriber('/base_pose_ground_truth', Odometry, odom1_cb)
-odom2_sub = rospy.Subscriber('/odom', Odometry, odom2_cb)
+odom2_sub = rospy.Subscriber('/odometry/filtered', Odometry, odom2_cb)
 odom3_sub = rospy.Subscriber('/vo', Odometry, odom3_cb)
-odom4_sub = rospy.Subscriber('/vo2', Odometry, odom4_cb)
-odom_pub = rospy.Publisher('/odom_0.7', Path, queue_size=1)
 path1_pub = rospy.Publisher('/true_path', Path, queue_size=1)
 path2_pub = rospy.Publisher('/path', Path, queue_size=1)
 path3_pub = rospy.Publisher('/vo_path', Path, queue_size=1)
