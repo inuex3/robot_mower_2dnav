@@ -1,0 +1,12 @@
+<launch>
+  <arg name="compressed"              default="false"/>         <!-- If you want to subscribe to compressed image topics -->
+  <arg name="database_path"           default="/home/nouki/rtabmap.db"/>
+  <arg name="rgb_image_transport"     default="compressed"/>    <!-- Common types: compressed, theora (see "rosrun image_transport list_transports") -->
+  <arg name="depth_image_transport"   default="compressedDepth"/>  <!-- Common types: compressed, theora (see "rosrun image_transport list_transports") -->
+  <arg name="localization"   default="false"/>  <!-- Common types: compressed, theora (see "rosrun image_transport list_transports") -->
+  <arg name="wait_for_transform" default="0.2"/> <!-- for data delay-->
+  <arg name="map_file" default="$(find robot_mower_2dnav)/cfg/map.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+<node name="republish1" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera1/color/image_raw raw out:=/camera1/color/image_raw" />
+<node name="republish" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera2/color/image_raw raw out:=/camera2/color/image_raw" />
+</launch>
