@@ -100,12 +100,12 @@
     <param name="/ukf_se/two_d_mode" value="True"/>
     <param name="/ukf_se/base_link_frame" value="base_link"/>
     <param name="/ukf_se/odom0" value="/vo"/>
-    <rosparam param="/ukf_se/odom0_config">[false, false, false,
-                                           false, false, false,
+    <rosparam param="/ukf_se/odom0_config">[true,true,true,
+                                            true,true,true,
                                             true,true,true,
                                             true,true,true,
                                             false, false, false]
-    <param name="/ukf_se/odom0_differential" value="false"/>
+    <param name="/ukf_se/odom0_differential" value="true"/>
     <param name="/ukf_se/odom0_relative" value="false"/>
     </rosparam>
     <param name="/ukf_se/odom0_relative" value="true"/>
