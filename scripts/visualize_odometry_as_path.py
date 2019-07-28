@@ -18,7 +18,7 @@ def odom1_cb(data):
     path1.header = data.header
     pose = PoseStamped()
     global num
-    if num % 10 == 0:
+    if num % 4 == 0:
         pose.header = data.header
         pose.header.frame_id = 'map'
         pose.pose.position.x = data.pose.pose.position.x
@@ -35,7 +35,7 @@ def odom2_cb(data):
     pose = PoseStamped()
     pose.header = data.header
     pose.pose = data.pose.pose
-    if prev_odom.pose.pose.position.x + prev_odom.pose.pose.position.y - (data.pose.pose.position.x + data.pose.pose.position.y) < 10:
+    if prev_odom.pose.pose.position.x + prev_odom.pose.pose.position.y - (data.pose.pose.position.x + data.pose.pose.position.y) < 10 and num % 4 == 0:
         path2.poses.append(pose)
     path2_pub.publish(path2)
     num = num + 1

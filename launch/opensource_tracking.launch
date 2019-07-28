@@ -1,0 +1,57 @@
+<launch>
+    <node pkg="rosbag" type="play" name="rosbagplay" args="/media/ubuntu/491dac4f-219f-463a-8342-3e177e5dd7b3/tanashi/OK727.bag --clock -d 5" required="true"/>
+    <arg name="compressed"              default="false"/>         <!-- If you want to subscribe to compressed image topics -->
+    <param name="use_sim_time"          value="true"/>
+    <node pkg="imu_filter_madgwick" type="imu_filter_node" name="ImuFilter">
+        <param name="use_mag" type="bool" value="false" />
+        <param name="publish_tf" type="bool" value="false" />
+        <param name="world_frame" type="string" value="enu" />
+        <remap from="/imu/data_raw" to="/gx5/imu/data"/>
+    </node>
+    <node name="republish1" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera1/color/image_raw raw out:=/camera1/color/image_raw" />
+    <node name="republish" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera2/color/image_raw raw out:=/camera2/color/image_raw" />
+
+  <node pkg="tf" type="static_transform_publisher" name="base_to_camera1_tf"
+      args="0.25 0 0.89 -1.570796327 0.0 -1.570796327 camera_link camera1_color_optical_frame 100" />
+  <node pkg="tf" type="static_transform_publisher" name="base_to_camera2_tf"
+      args="-0.25 0.0 0.92 1.570796327 0.0 -1.570796327  camera_link camera2_color_optical_frame 100" />
+  <node pkg="tf" type="static_transform_publisher" name="camera_imu_tf"
+      args="0 0 0 0 0 0 camera1_color_optical_frame gx5_link 100" />
+  <node pkg="tf" type="static_transform_publisher" name="base_gnss_tf"
+      args="0 0 0 0 0 0 camera_link gnss_link 100" />
+    <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
+        <arg name="args" value="--delete_db_on_start"/>
+        <arg name="rgb_topic" value="/camera2/color/image_raw"/>
+        <arg name="depth_topic" value="/camera2/aligned_depth_to_color/image_raw"/>
+        <arg name="camera_info_topic" value="/camera2/color/camera_info"/>
+        <arg name="rtabmapviz" value="true"/>
+        <arg name="rviz" value="true"/>
+    </include>
+
+    <include file="$(find robot_localization)/launch/ukf_template.launch"/>
+    <param name="/ukf_se/frequency" value="300"/>
+    <param name="two_d_mode" value="true"/>
+    <param name="/ukf_se/base_link_frame" value="camera_link"/>
+    <param name="/ukf_se/odom0" value="rtabmap/odom"/>
+    <rosparam param="/ukf_se/odom0_config">[true,true,true,
+                                            true,true,true,
+                                            true,true,true,
+                                            true,true,true,
+                                            true,true,true]
+    </rosparam>
+    <param name="/ukf_se/odom0_relative" value="true"/>
+    <param name="/ukf_se/odom0_pose_rejection_threshold" value="10000000"/>
+    <param name="/ukf_se/odom0_twist_rejection_threshold" value="10000000"/>
+
+    <param name="/ukf_se/imu0" value="/imu/data"/>
+    <rosparam param="/ukf_se/imu0_config">[false, false, false,
+                                           true,  true,  true,
+                                           true,  true,  true,
+                                           true,  true,  true,
+                                           true,  true,  true]
+    </rosparam>
+    <param name="/ukf_se/imu0_differential" value="true"/>
+    <param name="/ukf_se/imu0_relative" value="false"/>
+    <param name="/ukf_se/use_control" value="false"/>
+    <!-- <param name="/ukf_se/odom0_config" value="{true,true,true,}"/> -->
+</launch>

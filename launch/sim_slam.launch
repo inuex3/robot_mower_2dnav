@@ -1,4 +1,5 @@
 <launch>
+  <node pkg="rosbag" type="play" name="rosbagplay" args="/media/ubuntu/491dac4f-219f-463a-8342-3e177e5dd7b3/tanashi/OK727.bag --clock -d 5" required="true"/>
   <arg name="compressed"              default="false"/>         <!-- If you want to subscribe to compressed image topics -->
   <param name="use_sim_time"          value="true"/>
   <arg name="database_path"           default="/home/ubuntu/rtabmap.db"/>
@@ -10,11 +11,13 @@
 <node name="republish" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera2/color/image_raw raw out:=/camera2/color/image_raw" />
 
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera1_tf"
-      args="0.25 0 0.89 -1.570796327 0.0 -1.620796327 base_link camera1_color_optical_frame 100" />
+      args="0.25 0 0.89 -1.570796327 0.0 -1.570796327 base_link camera1_color_optical_frame 100" />
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera2_tf"
-      args="-0.25 0.0 0.92 1.570796327 0.0 -1.730796327  base_link camera2_color_optical_frame 100" />
+      args="-0.25 0.0 0.92 1.570796327 0.0 -1.570796327  base_link camera2_color_optical_frame 100" />
   <node pkg="tf" type="static_transform_publisher" name="camera_imu_tf"
-      args="0 0 0 0 0 0 camera1_color_optical_frame camera_imu_frame 100" />-->
+      args="0 0 0 0 0 0 camera1_color_optical_frame gx5_link 100" />
+  <node pkg="tf" type="static_transform_publisher" name="base_gnss_tf"
+      args="0 0 0 0 0 0 base_link gnss_link 100" />
 
    <group ns="camera1">
     <node pkg="nodelet" type="nodelet" name="nodelet_manager1" args="manager" />
@@ -47,7 +50,7 @@
        
       <param name="subscribe_rgbd"           type="bool"   value="true"/>
       <param name="Vis/MaxDepth" type="string" value="4.0"/> <!-- odometry -->
-      <param name="Vis/MinDepth" type="string" value="0.3"/> <!-- odometry -->
+      <param name="Vis/MinDepth" type="string" value="0.0"/> <!-- odometry -->
       <param name="approx_sync"          value="true"/>
       <param name="queue_size"          value="10"/>
       <param name="wait_for_transform_duration" type="double" value="0.2"/>
@@ -63,7 +66,7 @@
     <!-- Visual SLAM (robot side) -->
     <!-- args: "delete_db_on_start" and "udebug"-->
     <node name="rtabmap" pkg="rtabmap_ros" type="rtabmap" output="screen"  args="--delete_db_on_start">
-      <remap from="odom"            to="/vo"/>
+      <remap from="odom"            to="/odometry/filtered"/>
       <param name="subscribe_depth"  type="bool"   value="false"/>
       <param name="subscribe_rgbd"   type="bool"   value="true"/>
       <param name="rgbd_cameras"     type="int"    value="2"/>
@@ -76,6 +79,8 @@
       <param name="wait_for_transform_duration" type="double" value="0.2"/>
       <param name="map_negative_scan_empty_ray_tracing" type="bool" value="false"/>
       <param name="Reg/Force3DoF"    value="true" />
+      <param name="RGBD/OptimizeRobust" type="string" value="true"/>
+      <param name="RGBD/OptimizeMaxError" type="string" value="0"/> <!-- should be 0 if RGBD/OptimizeRobust is true -->
       <param name="RGBD/ProximityMaxGraphDepth" type="double" value="0" />
       <param name="RGBD/ProximityPathFilteringRadius" type="double"   value="1" /> 
       <param name="Grid/MaxGroundHeight" type="double" value="9999" />
@@ -92,52 +97,17 @@
         <param name="use_mag" type="bool" value="false" />
         <param name="publish_tf" type="bool" value="true" />
         <param name="world_frame" type="string" value="enu" />
-        <remap from="/imu/data_raw" to="/camera1/imu"/>
+        <remap from="/imu/data_raw" to="/gx5/imu/data"/>
+        <remap from="/imu/data" to="/imu/data_no_cov"/>
     </node>
 
-    <include file="$(find robot_localization)/launch/ukf_template.launch"/>
-    <param name="/ukf_se/frequency" value="300"/>
-    <param name="/ukf_se/two_d_mode" value="True"/>
-    <param name="/ukf_se/base_link_frame" value="base_link"/>
-    <param name="/ukf_se/odom0" value="/vo"/>
-    <rosparam param="/ukf_se/odom0_config">[true,true,true,
-                                            true,true,true,
-                                            true,true,true,
-                                            true,true,true,
-                                            false, false, false]
-    <param name="/ukf_se/odom0_differential" value="true"/>
-    <param name="/ukf_se/odom0_relative" value="false"/>
-    </rosparam>
-    <param name="/ukf_se/odom0_relative" value="true"/>
-    <param name="/ukf_se/odom0_pose_rejection_threshold" value="10000000"/>
-    <param name="/ukf_se/odom0_twist_rejection_threshold" value="10000000"/>
-
-    <param name="/ukf_se/imu0" value="/imu/data"/>
-    <rosparam param="/ukf_se/imu0_config">[false, false, false,
-                                           false, false, false,
-                                           false, false, false,
-                                           false, false, false,
-                                           false, false, false]
-    </rosparam>
-    <param name="/ukf_se/imu0_differential" value="true"/>
-    <param name="/ukf_se/imu0_relative" value="false"/>
-
-    <param name="/ukf_se/imu1" value="/mavros/imu/data"/>
-    <rosparam param="/ukf_se/imu1_config">[false, false, false,
-                                           false, false,false,
-                                           false, false, false,
-                                           false, false, false,
-                                           false, false, false]
-    </rosparam>
-    <param name="/ukf_se/imu1_differential" value="true"/>
-    <param name="/ukf_se/imu1_relative" value="false"/>
-
-    <param name="/ukf_se/use_control" value="false"/>
-    <rosparam param="/ukf_se/control_config">[true, false, false,
-                                           false,false,true]
-    </rosparam>
-    <!-- <param name="/ukf_se/odom_config" value="{true,true,true,}"/> -->
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
+      <rosparam command="load" file="$(find robot_mower_2dnav)/cfg/ekf_template.yaml" />
+    </node>
 
   <!-- Visualization RVIZ -->
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find robot_mower_2dnav)/cfg/rviz.rviz"/>
+  <node pkg="robot_mower_2dnav" type="gnssodom_publish_from_start.py" name="gnssodom_publish_from_start"/>
+  <node pkg="robot_mower_2dnav" type="imu_republish.py" name="imu_republish"/>
+  <node pkg="robot_mower_2dnav" type="visualize_odometry_as_path.py" name="visualize_odometry_as_path"/>
 </launch>
