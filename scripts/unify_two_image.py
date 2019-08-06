@@ -3,7 +3,6 @@
 
 import rospy
 from geometry_msgs.msg import Twist
-from mavros_msgs.msg import OverrideRCIn
 from sensor_msgs.msg import Image,CameraInfo
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np

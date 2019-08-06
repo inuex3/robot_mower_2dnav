@@ -22,7 +22,7 @@ class Publishsers():
         # Publisherを作成
         self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/visualized_obstacle", MarkerArray, queue_size = 1)
-        self.obstacle_list = ["person"]
+        self.obstacle_list = ["landmark"]
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
         self.obstacle_msg = ObstacleArrayMsg() 

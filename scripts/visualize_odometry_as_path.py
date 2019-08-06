@@ -21,6 +21,7 @@ def odom1_cb(data):
     pose.header.frame_id = 'map'
     pose.pose.position.x = data.pose.pose.position.x
     pose.pose.position.y = data.pose.pose.position.y
+    pose.pose.orientation = data.pose.pose.orientation
     path1.poses.append(pose)
     path1_pub.publish(path1)
 
@@ -63,7 +64,7 @@ def odom4_cb(data):
     num3 = num3 + 1
 
 rospy.init_node('path_node')
-odom_sub = rospy.Subscriber('/base_pose_ground_truth', Odometry, odom1_cb)
+odom_sub = rospy.Subscriber('/gnss_odom_from_start', Odometry, odom1_cb)
 odom2_sub = rospy.Subscriber('/odometry/filtered', Odometry, odom2_cb)
 odom3_sub = rospy.Subscriber('/vo', Odometry, odom3_cb)
 path1_pub = rospy.Publisher('/true_path', Path, queue_size=1)
