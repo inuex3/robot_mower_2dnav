@@ -141,7 +141,7 @@ class Publishsers():
                             self.landmark_msg.detections[0].pose.pose.pose.position.x = landmark_position[0][0]
                             self.landmark_msg.detections[0].pose.pose.pose.position.y = landmark_position[0][1]
                             self.landmark_msg.detections[0].pose.pose.pose.position.z = landmark_position[0][2]
-                            self.landmark_msg.detections[0].pose.pose.covariance = [abs(self.landmark_msg.detections[0].pose.pose.pose.position.z) * 0.3, 0.0 ,0.0, 0.0, 0.0 ,0.0, 0.0, 9999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, abs(self.landmark_msg.detections[0].pose.pose.pose.position.z)* 0.1,0.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 9999.0, 0.0 ,0.0, 0.0, 0.0, 0.0, 0.0, 9999.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 0.0, 9999]
+                            self.landmark_msg.detections[0].pose.pose.covariance = [10.0, 0.0 ,0.0, 0.0, 0.0 ,0.0, 0.0, 9999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0,0.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 9999.0, 0.0 ,0.0, 0.0, 0.0, 0.0, 0.0, 9999.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 0.0, 9999]
                             if (math.degrees(angle_x) - self.prev_angle) < 0.7:
                                 self.landmark_publisher.publish(self.landmark_msg)
                             self.prev_angle = math.degrees(angle_x)
