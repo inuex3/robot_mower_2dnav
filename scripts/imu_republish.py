@@ -15,14 +15,12 @@ def callback_imu(Imu_data):
     new_imu.orientation = Imu_data.orientation
     new_imu.orientation.z, new_imu.orientation.w = - Imu_data.orientation.z, new_imu.orientation.w
     e = tf.transformations.euler_from_quaternion((Imu_data.orientation.x, Imu_data.orientation.y, Imu_data.orientation.z, Imu_data.orientation.w))
-    print(str(math.degrees(e[2])))
     new_imu.angular_velocity = Imu_data.angular_velocity
     new_imu.angular_velocity.z = - Imu_data.angular_velocity.z
     new_imu.linear_acceleration = Imu_data.linear_acceleration
     new_imu.orientation_covariance[0], new_imu.orientation_covariance[4], new_imu.orientation_covariance[8] = 0.001, 0.001, 0.001
     new_imu.angular_velocity_covariance[0], new_imu.angular_velocity_covariance[4], new_imu.angular_velocity_covariance[8] = 0.0001, 0.0001, 0.0001
     new_imu.linear_acceleration_covariance[0], new_imu.linear_acceleration_covariance[4], new_imu.linear_acceleration_covariance[8] = 0.001, 0.001, 0.001
-    
     pub.publish(new_imu)
     
 def listen():

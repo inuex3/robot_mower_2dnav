@@ -11,7 +11,9 @@ from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point32
 import numpy as np
 from darknet_ros_msgs.msg import BoundingBoxes,BoundingBox
+from nav_msgs.msg import Odometry
 from apriltags2_ros.msg import AprilTagDetection, AprilTagDetectionArray
+from geometry_msgs.msg import PoseWithCovarianceStamped, Pose
 import tf
 import cv2
 import math
@@ -23,7 +25,7 @@ class Publishsers():
         self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/visualized_obstacle", MarkerArray, queue_size = 1)
         self.landmark_publisher = rospy.Publisher("/rtabmap/tag_detections", AprilTagDetectionArray, queue_size = 1)
-        #self.gps_publisher = rospy.Publisher("/rtabmap/gps/fix", NavSatFix, queue_size = 1)
+        self.gnss_publisher = rospy.Publisher("/rtabmap/global_pose", PoseWithCovarianceStamped, queue_size = 1)
         self.obstacle_list = ["person", "tree"]
         self.landmark_list = ["landmark"]
         self.tf_br = tf.TransformBroadcaster()
@@ -31,13 +33,16 @@ class Publishsers():
         self.obstacle_msg = ObstacleArrayMsg() 
         self.marker_data = MarkerArray()
         self.landmark_msg = AprilTagDetectionArray()
+        self.odom = Odometry()
+        self.start = PoseWithCovarianceStamped()
         self.now = rospy.get_rostime()
         self.prev = rospy.get_rostime()
-        self.prev_angle = 0
 
-    def make_msg(self, Depth1Image, Depth2Image, detection_data, camera1_param, camera2_param):
+    def make_msg(self, Depth1Image, Depth2Image, detection_data, camera1_param, camera2_param, odom, start):
         bboxes_from_camera1 = BoundingBoxes()
         bboxes_from_camera2 = BoundingBoxes()
+        self.odom = odom
+        self.start = start
         self.now = rospy.get_rostime()
         self.timebefore = detection_data.header.stamp
         # Add point obstacle
@@ -71,7 +76,7 @@ class Publishsers():
         
     def send_msg(self):
         self.publisher.publish(self.obstacle_msg)
-        self.marker_publisher.publish(self.marker_data)
+        #self.marker_publisher.publish(self.marker_data)
     
     def bbox_to_position_in_odom(self, bboxes, DepthImage, camera_param, i=0, obstacle_msg=ObstacleArrayMsg(), marker_data=MarkerArray()):
         j = 0
@@ -131,21 +136,47 @@ class Publishsers():
                             self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(),landmark_name ,bboxes.header.frame_id)
                             self.tf_listener.waitForTransform(bboxes.header.frame_id, landmark_name, rospy.Time(0), rospy.Duration(0.1))
                             landmark_position = self.tf_listener.lookupTransform(bboxes.header.frame_id, landmark_name, rospy.Time(0))
-                            if bboxes.header.frame_id == "camera1_color_optical_frame":
-                               self.landmark_msg.detections[0].id = [1]
-                            elif bboxes.header.frame_id == "camera2_color_optical_frame":
-                                self.landmark_msg.detections[0].id = [2]
+                            gnss_position = self.tf_listener.lookupTransform("base_link", landmark_name, rospy.Time(0))
                             self.landmark_msg.detections[0].size = [1]
                             self.landmark_msg.detections[0].pose.header = bboxes.header
                             self.landmark_msg.detections[0].pose.header.frame_id = bboxes.header.frame_id
                             self.landmark_msg.detections[0].pose.pose.pose.position.x = landmark_position[0][0]
                             self.landmark_msg.detections[0].pose.pose.pose.position.y = landmark_position[0][1]
                             self.landmark_msg.detections[0].pose.pose.pose.position.z = landmark_position[0][2]
-                            self.landmark_msg.detections[0].pose.pose.covariance = [10.0, 0.0 ,0.0, 0.0, 0.0 ,0.0, 0.0, 9999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0,0.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 9999.0, 0.0 ,0.0, 0.0, 0.0, 0.0, 0.0, 9999.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 0.0, 9999]
-                            if (math.degrees(angle_x) - self.prev_angle) < 0.7:
-                                self.landmark_publisher.publish(self.landmark_msg)
-                            self.prev_angle = math.degrees(angle_x)
-                            rospy.sleep(0.1)   
+                            self.landmark_msg.detections[0].pose.pose.covariance = [distance_x*distance_x + distance_y * distance_y, 0.0 ,0.0, 0.0, 0.0 ,0.0, 0.0, 9999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, distance_x*distance_x + distance_y * distance_y,0.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 9999.0, 0.0 ,0.0, 0.0, 0.0, 0.0, 0.0, 9999.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 0.0, 9999]
+                            position = PoseWithCovarianceStamped()
+                            position.header = self.odom.header
+                            position.header.frame_id = "base_link"
+                            e = tf.transformations.euler_from_quaternion((self.start.pose.pose.orientation.x, self.start.pose.pose.orientation.y, self.start.pose.pose.orientation.z, self.start.pose.pose.orientation.w))
+                            if bboxes.header.frame_id == "camera1_color_optical_frame":
+                                self.landmark_msg.detections[0].id = [1]
+                                gnss_x = 367934.353924 - self.start.pose.pose.position.x
+                                gnss_y = 3955738.89453 - self.start.pose.pose.position.y
+                            elif bboxes.header.frame_id == "camera2_color_optical_frame":
+                                self.landmark_msg.detections[0].id = [2]
+                                gnss_x = 367958.023865 - self.start.pose.pose.position.x
+                                gnss_y = 3955741.4927 - self.start.pose.pose.position.y
+                            position.pose.pose.position.x = gnss_x - (gnss_position[0][0]*math.cos(e[2]) - gnss_position[0][1]*math.sin(e[2]))
+                            position.pose.pose.position.y = gnss_y - (gnss_position[0][0]*math.sin(e[2]) + gnss_position[0][1]*math.cos(e[2]))
+                            position.pose.pose.position.z = 0
+                            #orientation =tf.transformations.quaternion_multiply((self.odom.pose.pose.orientation.x, self.odom.pose.pose.orientation.y, self.odom.pose.pose.orientation.z, self.odom.pose.pose.orientation.w), (self.start.pose.pose.orientation.x, self.start.pose.pose.orientation.y, self.start.pose.pose.orientation.z, self.start.pose.pose.orientation.w))
+                            #print(orientation)
+                            #position.pose.pose.orientation.x, position.pose.pose.orientation.y, position.pose.pose.orientation.z, position.pose.pose.orientation.w = orientation[0], orientation[1], - orientation[2], orientation[3]
+                            position.pose.pose.orientation = self.odom.pose.pose.orientation
+                            position.pose.covariance = [distance_x * distance_x + distance_y * distance_y, 0, 0, 0, 0, 0, 0, distance_x * distance_x + distance_y * distance_y, 0, 0, 0, 0, 0, 0, distance_x*distance_x + distance_y * distance_y, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0.5, 0, 0,0, 0, 0, 0, 0.5]
+                            marker_data.markers.append(Marker())
+                            marker_data.markers[0].header.stamp, marker_data.markers[i].header.frame_id = bboxes.header.stamp, "map"     
+                            marker_data.markers[0].ns, marker_data.markers[0].id = bbox.Class, 0
+                            marker_data.markers[0].action = Marker.ADD
+                            marker_data.markers[0].pose.position.x, marker_data.markers[0].pose.position.y, marker_data.markers[0].pose.position.z = position.pose.pose.position.x, position.pose.pose.position.y, 0.5
+                            marker_data.markers[0].pose.orientation.x, marker_data.markers[0].pose.orientation.y, marker_data.markers[0].pose.orientation.z, marker_data.markers[0].pose.orientation.w= tf.transformations.quaternion_from_euler(0, 0, 0) 
+                            marker_data.markers[0].color.r, marker_data.markers[0].color.g, marker_data.markers[0].color.b, marker_data.markers[0].color.a = 1, 0, 0, 1
+                            marker_data.markers[0].scale.x, marker_data.markers[0].scale.y, marker_data.markers[0].scale.z = 0.2, 0.2, 1
+                            marker_data.markers[0].type = 3
+                            self.landmark_publisher.publish(self.landmark_msg)
+                            self.gnss_publisher.publish(position)
+                            self.marker_publisher.publish(marker_data)
+                            #rospy.sleep(3)   
                 except Exception as e:
                     print(e)
         return obstacle_msg, marker_data
@@ -172,8 +203,11 @@ class Subscribe_publishers():
         self.depth1_subscriber = message_filters.Subscriber('/camera1/aligned_depth_to_color/image_raw', Image)
         self.depth2_subscriber = message_filters.Subscriber('/camera2/aligned_depth_to_color/image_raw', Image)
         self.detection_subscriber =message_filters.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes)
+        self.odom_subscriber = message_filters.Subscriber('/odometry/filtered', Odometry)
         self.camera1_param_subscriber = rospy.Subscriber("/camera1/color/camera_info", CameraInfo, self.camera1_parameter_callback)
         self.camera2_param_subscriber = rospy.Subscriber("/camera2/color/camera_info", CameraInfo, self.camera2_parameter_callback)
+        self.start_subscriber = rospy.Subscriber('/gnss_odom', Odometry, self.gnss_start_callback)
+
         # messageの型を作成
         self.pub = pub
         self.depth1_image = Image()
@@ -181,7 +215,9 @@ class Subscribe_publishers():
         self.detection_data = BoundingBoxes()
         self.camera1_parameter = CameraInfo()
         self.camera2_parameter = CameraInfo()
-        ts = message_filters.ApproximateTimeSynchronizer([self.depth1_subscriber, self.depth2_subscriber, self.detection_subscriber], 10, 0.05)
+        self.odom = Odometry()
+        self.start_position = PoseWithCovarianceStamped()
+        ts = message_filters.ApproximateTimeSynchronizer([self.depth1_subscriber, self.depth2_subscriber, self.detection_subscriber, self.odom_subscriber], 10, 0.05)
         ts.registerCallback(self.bounding_boxes_callback)
 
     def camera1_parameter_callback(self, data):
@@ -198,14 +234,28 @@ class Subscribe_publishers():
         self.camera2_parameter = np.linalg.inv(camera_parameter_org)
         print ("Camera parameter:")
         print (camera_parameter_org)
-        self.camera2_param_subscriber.unregister()        
+        self.camera2_param_subscriber.unregister() 
 
-    def bounding_boxes_callback(self, depth1_image, depth2_image, detection_data):
-        self.depth1_image, self.depth2_image, self.detection_data = depth1_image, depth2_image, detection_data
+    def gnss_start_callback(self, Odom):
+        if Odom.header.seq == 9365:
+            start = Odom
+            start.header.frame_id = "base_link"
+            self.start_position.pose.pose.position.x = start.pose.pose.position.x
+            self.start_position.pose.pose.position.y = start.pose.pose.position.y
+            self.start_position.pose.pose.orientation = start.pose.pose.orientation
+            print ("start_x:" + str(start.pose.pose.position.x))
+            print ("start_y:" + str(start.pose.pose.position.y))
+            self.start_subscriber.unregister() 
+
+    def odom_callback(self, Odom):
+        self.odom = Odometry()
+
+    def bounding_boxes_callback(self, depth1_image, depth2_image, detection_data, odom):
+        self.depth1_image, self.depth2_image, self.detection_data, self.odom = depth1_image, depth2_image, detection_data, odom
         self.pub.send_msg()
 
     def pub_msg(self):
-        self.pub.make_msg(self.depth1_image, self.depth2_image, self.detection_data, self.camera1_parameter, self.camera2_parameter)
+        self.pub.make_msg(self.depth1_image, self.depth2_image, self.detection_data, self.camera1_parameter, self.camera2_parameter, self.odom, self.start_position)
 
 def main():
     # nodeの立ち上げ
