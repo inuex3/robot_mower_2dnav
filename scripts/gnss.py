@@ -21,7 +21,7 @@ def callback(Odom, gps):
     global start
     gnss_odom = Odometry()
     e = tf.transformations.euler_from_quaternion((Odom.pose.pose.orientation.x, Odom.pose.pose.orientation.y, Odom.pose.pose.orientation.z, Odom.pose.pose.orientation.w))
-    if Odom.header.seq == 9365:
+    if Odom.header.seq == 21868:
         start = Odom
         start.header.frame_id = "map"
         start_pose = ResetPose()
@@ -31,7 +31,7 @@ def callback(Odom, gps):
         #rospy.sleep(0.2)
         #reset_pose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         #pub_gps.publish(gps)
-    elif Odom.header.seq > 9365:
+    elif Odom.header.seq > 21868:
         e = tf.transformations.euler_from_quaternion((start.pose.pose.orientation.x, start.pose.pose.orientation.y, start.pose.pose.orientation.z, start.pose.pose.orientation.w))
         yaw = e[2]
         gnss_odom.header.frame_id = "map"
