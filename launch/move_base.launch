@@ -19,9 +19,9 @@
   		<rosparam file="$(find robot_mower_2dnav)/cfg/global_costmap_params.yaml" command="load" />
   		<rosparam file="$(find robot_mower_2dnav)/cfg/teb_local_planner_params.yaml" command="load" />
 
-		<param name="base_global_planner" value="carrot_planner/CarrotPlanner" />
+		<param name="base_global_planner" value="mowing_planner/MowingPlanner" />
 		<param name="allow_unknown" value="true" />
-		<param name="planner_frequency" value="3.0" />
+		<param name="planner_frequency" value="5.0" />
 		<param name="planner_patience" value="5.0" />
 
 		<param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
@@ -29,7 +29,7 @@
 		<param name="controller_patience" value="15.0" />
 	</node>
     <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
-    <node name="cmd_to_rc" pkg="robot_mower_2dnav" type="cmd_to_rc.py" respawn="false" output="screen"/>
     <node name="heatmap" pkg="robot_mower_2dnav" type="heatmap_client" respawn="false" output="screen"/>
     <node name="waypoint" pkg="robot_mower_2dnav" type="path_planner.py" respawn="false" output="screen"/>
+    <node name="publish_obstacle" pkg="robot_mower_2dnav" type="publish_tree_obstacle_from_unified_image.py" respawn="false" output="screen"/>  
 </launch>

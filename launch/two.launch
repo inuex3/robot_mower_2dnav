@@ -1,5 +1,5 @@
 <launch>
-  <arg name="serial_no_camera1"    			default="818312070111"/> 			<!-- Note: Replace with actual serial number -->
+  <arg name="serial_no_camera1"    			default="843112071079"/> 			<!-- Note: Replace with actual serial number -->
   <arg name="serial_no_camera2"    			default="832112071577"/> 			<!-- Note: Replace with actual serial number -->
   <arg name="camera1"              			default="camera1"/>		<!-- Note: Replace with camera name -->
   <arg name="camera2"              			default="camera2"/>		<!-- Note: Replace with camera name -->
