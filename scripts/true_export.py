@@ -14,8 +14,8 @@ def odom_true_cb(data):
     true_path = data
 
 def odom_cb(data):
-    if data.header.stamp.secs < 1566367845:#1566367845ouhuku2:#1566368551:forward
-        print(data.header.stamp.secs)
+    if rospy.get_rostime().secs < 1566367845:#1566367845ouhuku2:#1566368551:forward
+        print(1566368551 - rospy.get_rostime().secs)
         global true_path
         f_t = open('true_output.csv', 'w')
         writer_t = csv.writer(f_t, lineterminator='\n')
@@ -27,7 +27,7 @@ def odom_cb(data):
             csvlist_true.append(str(math.degrees(e[2])))
             writer_t.writerow(csvlist_true)
 
-rospy.init_node('path_node')
+rospy.init_node('path_node_true')
 
 path_sub = rospy.Subscriber('/true_path', Path, odom_cb)
 true_path_sub = rospy.Subscriber('/true_path', Path, odom_true_cb)

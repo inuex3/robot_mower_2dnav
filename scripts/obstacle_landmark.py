@@ -33,6 +33,7 @@ class Publishsers():
         self.obstacle_msg = ObstacleArrayMsg() 
         self.marker_data = MarkerArray()
         self.landmark_msg = AprilTagDetectionArray()
+        self.prev_landmark = [2]
         self.odom = Odometry()
         self.start = PoseWithCovarianceStamped()
         self.position = PoseWithCovarianceStamped()
@@ -93,14 +94,14 @@ class Publishsers():
                 try:
                     tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1 
                     angle_x = math.atan(tan_angle_x)
-                    if 0 < abs(math.degrees(angle_x)) < 40:
+                    if 0 < abs(math.degrees(angle_x)) < 30:
                         detected_area = DepthImage[bbox.ymin:bbox.ymax, bbox.xmin:bbox.xmax]
                         #detected_area = np.where(detected_area == 0.0, detected_area, detected_area)
                         detected_area = np.where(detected_area > 8.0, detected_area, np.nan)
                         distance_x = np.nanmedian(detected_area)/1000
                         distance_x = distance_x
                         distance_y = - distance_x * tan_angle_x
-                        if 3.0 < distance_x < 4.5:
+                        if 3.0 < distance_x < 4.0:
                             print(distance_x)
                             obstacle_msg.obstacles.append(ObstacleMsg())
                             marker_data.markers.append(Marker())
@@ -132,17 +133,18 @@ class Publishsers():
                 try:
                     tan_angle_x = camera_param[0][0]*((bbox.xmin+bbox.xmax)/2) + camera_param[0][2]*1 
                     angle_x = math.atan(tan_angle_x)
-                    if abs(math.degrees(angle_x)) < 40:
-                        detected_area = DepthImage[(bbox.ymin + (bbox.ymax - bbox.ymin)/3):(bbox.ymax - (bbox.ymax - bbox.ymin)/3), (bbox.xmin + (bbox.xmax - bbox.xmin)/3):(bbox.xmax - (bbox.xmax - bbox.xmin)/3)]
-                        #detected_area = np.where(detected_area == 0.0, detected_area, detected_area)
-                        #detected_area = np.where(detected_area > 5.0, detected_area, np.nan)
+                    if abs(math.degrees(angle_x)) < 35:
+                        detected_area = DepthImage[(bbox.ymin + (bbox.ymax - bbox.ymin)/4):(bbox.ymax - (bbox.ymax - bbox.ymin)/4), (bbox.xmin + (bbox.xmax - bbox.xmin)/4):(bbox.xmax - (bbox.xmax - bbox.xmin)/4)]
+                        detected_area = np.where(detected_area == 0.0, detected_area, detected_area)
+                        detected_area = np.where(detected_area > 10.0, detected_area, np.nan)
                         distance_x = np.nanmedian(detected_area)/1000
                         distance_x = distance_x
                         distance_y = - distance_x * tan_angle_x
+                        distance_e = (distance_x * distance_x + distance_y * distance_y)**0.5
                         if 3.0 < distance_x < 6.0:
-                            print(distance_x)
+                            print(distance_e)
                             now = rospy.Time.now()
-                            distance2 = distance_x * distance_x + distance_y * distance_y
+                            distance_e = distance_x * distance_x / 5+ distance_y * distance_y / 3
                             self.landmark_msg.detections.append(AprilTagDetection())
                             landmark_name = "/" + bbox.Class + bboxes.header.frame_id + str(now)
                             self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(),landmark_name ,bboxes.header.frame_id)
@@ -154,7 +156,7 @@ class Publishsers():
                             self.landmark_msg.detections[0].pose.pose.pose.position.x = landmark_position[0][0]
                             self.landmark_msg.detections[0].pose.pose.pose.position.y = landmark_position[0][1]
                             self.landmark_msg.detections[0].pose.pose.pose.position.z = landmark_position[0][2]
-                            self.landmark_msg.detections[0].pose.pose.covariance = [5, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, distance2 * 10, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0,0, 0, 0, 0, 9999]
+                            self.landmark_msg.detections[0].pose.pose.covariance = [distance_e, 0, 0, 0, 0, 0, 0, distance_e, 0, 0, 0, 0, 0, 0, distance_e * 10, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0,0, 0, 0, 0, 9999]
                             self.position = PoseWithCovarianceStamped()
                             self.position.header = self.odom.header
                             self.position.header.frame_id = "base_link"
@@ -176,7 +178,7 @@ class Publishsers():
                             self.position.pose.pose.position.y = gnss_y - gnss_position[0][1]
                             self.position.pose.pose.position.z = 0
                             self.position.pose.pose.orientation = self.odom.pose.pose.orientation
-                            self.position.pose.covariance = [50, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, distance2 * 10, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0,0, 0, 0, 0, 9999]
+                            self.position.pose.covariance = [0.5, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0,0, 0, 0, 0, 9999]
                             self.marker_data.markers.append(Marker())
                             self.marker_data.markers[0].header.stamp, self.marker_data.markers[0].header.frame_id = bboxes.header.stamp, "map"     
                             self.marker_data.markers[0].ns, self.marker_data.markers[0].id = bbox.Class, 0
@@ -195,11 +197,11 @@ class Publishsers():
                             self.marker_data.markers[1].color.r, self.marker_data.markers[1].color.g, self.marker_data.markers[1].color.b, self.marker_data.markers[1].color.a = 1, 0, 0, 1
                             self.marker_data.markers[1].scale.x, self.marker_data.markers[1].scale.y, self.marker_data.markers[1].scale.z = 0.5, 0.5, 0.5
                             self.marker_data.markers[1].type = 1
-                            if (gnss_x - gnss_position[0][0] - base_link_position[0][0]) ** 2 + (gnss_y - gnss_position[0][1] - base_link_position[0][1]) ** 2 < 10:
-                                #self.landmark_publisher.publish(self.landmark_msg)
+                            if (gnss_x - gnss_position[0][0] - base_link_position[0][0]) ** 2 + (gnss_y - gnss_position[0][1] - base_link_position[0][1]) ** 2 < 5:
+                                #self.landmark_publisher.publish(self.landmark_msg) 
                                 self.gnss_publisher.publish(self.position)
                                 self.marker_publisher.publish(self.marker_data)
-                                rospy.sleep(15)
+                                rospy.sleep(0.2)
                 except Exception as e:
                     print(e)
         return obstacle_msg, marker_data
@@ -260,7 +262,7 @@ class Subscribe_publishers():
         self.camera2_param_subscriber.unregister() 
 
     def gnss_start_callback(self, Odom):
-        if Odom.header.seq == 23868:
+        if Odom.header.seq == 23872:
             start = Odom
             start.header.frame_id = "base_link"
             self.start_position.pose.pose.position.x = start.pose.pose.position.x
