@@ -26,7 +26,7 @@ class Publishsers():
         self.marker_publisher = rospy.Publisher("/visualized_obstacle", MarkerArray, queue_size = 1)
         self.landmark_publisher = rospy.Publisher("/rtabmap/tag_detections", AprilTagDetectionArray, queue_size = 1)
         self.gnss_publisher = rospy.Publisher("/rtabmap/global_pose", PoseWithCovarianceStamped, queue_size = 1)
-        self.obstacle_list = ["person", "tree"]
+        self.obstacle_list = ["landmark"]
         self.landmark_list = ["landmark"]
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
@@ -90,41 +90,6 @@ class Publishsers():
             del obstacle_msg.obstacles[:]
             del marker_data.markers[:]
         for bbox in bboxes.bounding_boxes:
-            if bbox.Class in self.obstacle_list:
-                try:
-                    tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1 
-                    angle_x = math.atan(tan_angle_x)
-                    if 0 < abs(math.degrees(angle_x)) < 30:
-                        detected_area = DepthImage[bbox.ymin:bbox.ymax, bbox.xmin:bbox.xmax]
-                        #detected_area = np.where(detected_area == 0.0, detected_area, detected_area)
-                        detected_area = np.where(detected_area > 8.0, detected_area, np.nan)
-                        distance_x = np.nanmedian(detected_area)/1000
-                        distance_x = distance_x
-                        distance_y = - distance_x * tan_angle_x
-                        if 3.0 < distance_x < 4.0:
-                            print(distance_x)
-                            obstacle_msg.obstacles.append(ObstacleMsg())
-                            marker_data.markers.append(Marker())
-                            self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), bbox.Class + str(i), bboxes.header.frame_id)
-                            self.tf_listener.waitForTransform("/odom", "/" + bbox.Class + str(i), rospy.Time(0), rospy.Duration(0.3))
-                            obstable_position = self.tf_listener.lookupTransform("/odom", bbox.Class + str(i),  rospy.Time(0))
-                            obstacle_msg.obstacles[i].header.stamp, obstacle_msg.obstacles[i].header.frame_id = bboxes.header.stamp, "odom"    
-                            obstacle_msg.obstacles[i].id = i
-                            obstacle_msg.obstacles[i].polygon.points = [Point32()]
-                            obstacle_msg.obstacles[i].polygon.points[0].x = obstable_position[0][0]
-                            obstacle_msg.obstacles[i].polygon.points[0].y = obstable_position[0][1]
-                            obstacle_msg.obstacles[i].polygon.points[0].z = obstable_position[0][2]
-                            marker_data.markers[i].header.stamp, marker_data.markers[i].header.frame_id = bboxes.header.stamp, "odom"     
-                            marker_data.markers[i].ns, marker_data.markers[i].id = bbox.Class, i
-                            marker_data.markers[i].action = Marker.ADD
-                            marker_data.markers[i].pose.position.x, marker_data.markers[i].pose.position.y, marker_data.markers[i].pose.position.z = obstable_position[0][0], obstable_position[0][1], obstable_position[0][2]
-                            marker_data.markers[i].pose.orientation.x, marker_data.markers[i].pose.orientation.y, marker_data.markers[i].pose.orientation.z, marker_data.markers[i].pose.orientation.w= tf.transformations.quaternion_from_euler(0, 0, 0) 
-                            marker_data.markers[i].color.r, marker_data.markers[i].color.g, marker_data.markers[i].color.b, marker_data.markers[i].color.a = 1, 0, 0, 1
-                            marker_data.markers[i].scale.x, marker_data.markers[i].scale.y, marker_data.markers[i].scale.z = 0.2, 0.2, 1
-                            marker_data.markers[i].type = 3
-                            i = i + 1
-                except Exception as e:
-                    pass
             if bbox.Class in self.landmark_list:
                 self.landmark_msg = AprilTagDetectionArray()
                 self.landmark_msg.header = bboxes.header
@@ -142,7 +107,6 @@ class Publishsers():
                         distance_y = - distance_x * tan_angle_x
                         distance_e = (distance_x * distance_x + distance_y * distance_y)**0.5
                         if 3.0 < distance_x < 6.0:
-                            print(distance_e)
                             now = rospy.Time.now()
                             distance_e = distance_x * distance_x / 5+ distance_y * distance_y / 3
                             self.landmark_msg.detections.append(AprilTagDetection())
@@ -280,6 +244,7 @@ class Subscribe_publishers():
 
     def pub_msg(self):
         self.pub.make_msg(self.depth1_image, self.depth2_image, self.detection_data, self.camera1_parameter, self.camera2_parameter, self.odom, self.start_position)
+        self.pub.send_msg()
 
 def main():
     # nodeの立ち上げ

@@ -1,6 +1,7 @@
 <launch>
   <include file="$(find darknet_ros)/launch/test.launch" />
+  <include file="$(find robot_mower_2dnav)/launch/move_base.launch" />
   <node name="unify_two" pkg="robot_mower_2dnav" type="unify_two_image.py" respawn="false" output="screen"/>
   <node name="landmark" pkg="robot_mower_2dnav" type="obstacle_landmark.py" respawn="false" output="screen"/>
-
+  <node name="obstacle" pkg="robot_mower_2dnav" type="obstacle.py" respawn="false" output="screen"/>
 </launch>

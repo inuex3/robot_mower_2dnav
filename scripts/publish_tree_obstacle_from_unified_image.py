@@ -84,7 +84,7 @@ class Publishsers():
                         distance_x = np.median(detected_area)/1000
                         distance_x = distance_x + 0.15
                         distance_y = - distance_x * tan_angle_x
-                        if 1.0 < distance_x < 4.0:
+                        if 3.0 < distance_x < 6.0:
                             obstacle_msg.obstacles.append(ObstacleMsg())
                             marker_data.markers.append(Marker())
                             self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), bbox.Class + str(i), bboxes.header.frame_id)
@@ -97,11 +97,11 @@ class Publishsers():
                             obstacle_msg.obstacles[i].polygon.points[0].y = obstable_position[0][1]
                             obstacle_msg.obstacles[i].polygon.points[0].z = obstable_position[0][2]
                             marker_data.markers[i].header.stamp, marker_data.markers[i].header.frame_id = bboxes.header.stamp, "odom"     
-                            marker_data.markers[i].ns, marker_data.markers[i].id = bbox.Class, i
+                            marker_data.markers[i].ns, marker_data.markers[i].id = "obstacle", i
                             marker_data.markers[i].action = Marker.ADD
                             marker_data.markers[i].pose.position.x, marker_data.markers[i].pose.position.y, marker_data.markers[i].pose.position.z = obstable_position[0][0], obstable_position[0][1], obstable_position[0][2]
                             marker_data.markers[i].pose.orientation.x, marker_data.markers[i].pose.orientation.y, marker_data.markers[i].pose.orientation.z, marker_data.markers[i].pose.orientation.w= tf.transformations.quaternion_from_euler(0, 0, 0)
-                            marker_data.markers[i].color.r, marker_data.markers[i].color.g, marker_data.markers[i].color.b, marker_data.markers[i].color.a = 1, 0, 0, 1
+                            marker_data.markers[i].color.r, marker_data.markers[i].color.g, marker_data.markers[i].color.b, marker_data.markers[i].color.a = 0, 1, 0, 1
                             marker_data.markers[i].scale.x, marker_data.markers[i].scale.y, marker_data.markers[i].scale.z = 0.2, 0.2, 1
                             marker_data.markers[i].type = 3
                             i = i + 1
