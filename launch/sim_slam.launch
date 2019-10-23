@@ -1,5 +1,5 @@
 <launch>
-  <node pkg="rosbag" type="play" name="rosbagplay" args="/media/ubuntu/491dac4f-219f-463a-8342-3e177e5dd7b3/tanashi/OKouhuku2.bag --clock -d 5 --start 22" respawn="false"/>
+  <node pkg="rosbag" type="play" name="rosbagplay" args="/mnt/dataset/tanashi/OKouhuku2.bag --clock -d 5 --start 22" respawn="false"/>
   <param name="use_sim_time" value="true"/> <!-- odometry -->
   <arg name="compressed"              default="false"/>         <!-- If you want to subscribe to compressed image topics -->
   <arg name="database_path"           default="/home/ubuntu/rtabmap.db"/>

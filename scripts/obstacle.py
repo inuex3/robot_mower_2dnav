@@ -26,7 +26,9 @@ class Publishsers():
         self.marker_publisher = rospy.Publisher("/visualized_obstacle", MarkerArray, queue_size = 1)
         self.landmark_publisher = rospy.Publisher("/rtabmap/tag_detections", AprilTagDetectionArray, queue_size = 1)
         self.gnss_publisher = rospy.Publisher("/rtabmap/global_pose", PoseWithCovarianceStamped, queue_size = 1)
+        self.object_list = ["landmark"]
         self.obstacle_list = ["landmark"]
+        self.landmark_list = ["landmark"]
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
         self.obstacle_msg = ObstacleArrayMsg() 
@@ -130,18 +132,18 @@ class Publishsers():
                 except Exception as e:
                     pass
         return obstacle_msg, marker_data
-
+    """
     def update_obstacles(self, prev_obstacle_msg, detected_obstacle_msg, prev_marker_msg, marker_msg):
         self.tf_listener.waitForTransform("/odom", "/base_link", rospy.Time(0), rospy.Duration(0.1))
         current_position = self.tf_listener.lookupTransform("/odom", "/base_link",  rospy.Time(0))
+        print(len(prev_obstacle_msg.obstacles))    
         for detected_obstacle, marker in zip(detected_obstacle_msg.obstacles, marker_msg.markers): 
             updated = False
-            print("OK")
-            for prev_obstacle, prev_marker in zip(prev_obstacle_msg.obstacles, prev_marker_msg.markers):        
+            for prev_obstacle, prev_marker in zip(prev_obstacle_msg.obstacles, prev_marker_msg.markers):  
                 if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) > 4 or abs(current_position[0][1] - prev_obstacle.polygon.points[0].y) > 4:
                     prev_obstacle_msg.obstacles.pop(prev_obstacle)
                     prev_marker_msg.markers.pop(prev_marker)  
-                    break                                    
+                    break
                 if ((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y)) < 1:
                     prev_obstacle.polygon.points[0].x = detected_obstacle.polygon.points[0].x 
                     prev_obstacle.polygon.points[0].y = detected_obstacle.polygon.points[0].y
@@ -151,10 +153,43 @@ class Publishsers():
                     prev_marker.pose.position.y = marker.pose.position.y
                     updated = True                  
                 break
-            if not updated:
-                prev_obstacle_msg.obstacles.append(detected_obstacle)                    
-                prev_marker_msg.markers.append(marker)                    
+                if not updated:
+                    prev_obstacle_msg.obstacles.append(detected_obstacle)                    
+                    prev_marker_msg.markers.append(marker)                    
         return prev_obstacle_msg.obstacles, prev_marker_msg.markers
+        """
+    def update_obstacles(self, prev_obstacle_msg, detected_obstacle_msg, prev_marker_msg, marker_msg):
+        self.tf_listener.waitForTransform("/odom", "/base_link", rospy.Time(0), rospy.Duration(0.1))
+        current_position = self.tf_listener.lookupTransform("/odom", "/base_link",  rospy.Time(0))
+        updated_obstacle_msg = ObstacleArrayMsg() 
+        updated_marker_data = MarkerArray()
+        prev_obstacle_in_area = ObstacleArrayMsg()
+        prev_marker_in_area = MarkerArray() 
+        try:
+            for i, prev_obstacle in enumerate(self.obstacle_msg.obstacles):
+                if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) < 10 and abs(current_position[0][1] - prev_obstacle.polygon.points[0].y) < 10:
+                    prev_obstacle_in_area.obstacles.append(prev_obstacle)
+                    #prev_marker_in_area.markers.append(prev_marker)
+            self.obstacle_msg.obstacles = prev_obstacle_in_area.obstacles
+        except Exception as e:
+            print("例外" + str(e))
+        for detected_obstacle, marker in zip(detected_obstacle_msg.obstacles, marker_msg.markers):
+            if len(prev_obstacle_in_area.obstacles) > 0:
+                for prev_obstacle, prev_marker in zip(self.obstacle_msg.obstacles, prev_marker_in_area.markers):
+                    try:
+                        if ((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y)) < 1.0:
+                            prev_obstacle.polygon.points[0].x = detected_obstacle.polygon.points[0].x 
+                            prev_obstacle.polygon.points[0].y = detected_obstacle.polygon.points[0].y
+                            prev_marker.pose.position.x = marker.pose.position.x 
+                            prev_marker.pose.position.y = marker.pose.position.y
+                            self.obstacle_msg.obstacles.append(prev_obstacle)                    
+                            updated_marker_data.markers.append(prev_marker)                         
+                    except Exception as e:
+                        print("例外" + str(e))
+            else:      
+                self.obstacle_msg.obstacles.append(detected_obstacle)                    
+                updated_marker_data.markers.append(marker)
+        return self.obstacle_msg.obstacles, marker_msg.markers
 
 class Subscribe_publishers():
     def __init__(self, pub):

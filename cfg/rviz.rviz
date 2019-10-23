@@ -10,6 +10,8 @@ Panels:
         - /MapCloud1
         - /Info1
         - /Path1
+        - /MarkerArray1
+        - /MarkerArray1/Namespaces1
         - /Odometry1
         - /Path2
         - /MarkerArray2
@@ -186,7 +188,8 @@ Visualization Manager:
       Marker Topic: /visualized_obstacle
       Name: MarkerArray
       Namespaces:
-        {}
+        landmark: false
+        obstacle: true
       Queue Size: 100
       Value: true
     - Class: rviz/Image
@@ -317,7 +320,8 @@ Visualization Manager:
       Marker Topic: /visualized_obstacle
       Name: MarkerArray
       Namespaces:
-        {}
+        landmark: true
+        obstacle: true
       Queue Size: 100
       Value: true
     - Class: rviz/Image
@@ -337,7 +341,8 @@ Visualization Manager:
       Marker Topic: /move_base/TebLocalPlannerROS/teb_markers
       Name: Marker
       Namespaces:
-        {}
+        PointObstacles: true
+        ViaPoints: true
       Queue Size: 100
       Value: true
     - Alpha: 0.699999988079071
@@ -364,6 +369,29 @@ Visualization Manager:
       Shaft Radius: 0.009999999776482582
       Shape: Arrow (Flat)
       Topic: /move_base/TebLocalPlannerROS/teb_poses
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /move_base/TebLocalPlannerROS/global_plan
       Unreliable: false
       Value: true
   Enabled: true
@@ -405,10 +433,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.659796416759491
+      Pitch: 0.7897965908050537
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 2.5341906547546387
+      Yaw: 5.987823963165283
     Saved: ~
 Window Geometry:
   Displays:
@@ -428,5 +456,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1209
-  X: 196
-  Y: 176
+  X: 67
+  Y: 283
