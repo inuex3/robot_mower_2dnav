@@ -28,7 +28,7 @@ class Publishsers():
         self.gnss_publisher = rospy.Publisher("/rtabmap/global_pose", PoseWithCovarianceStamped, queue_size = 1)
         self.object_list = ["landmark"]
         self.obstacle_list = ["landmark"]
-        self.landmark_list = ["landmark"]
+        self.landmark_list = ["tmp"]
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
         self.obstacle_msg = ObstacleArrayMsg() 
@@ -97,6 +97,84 @@ class Publishsers():
             del obstacle_msg.obstacles[:]
             del marker_data.markers[:]
         for bbox in bboxes.bounding_boxes:
+            if bbox.Class in self.landmark_list:
+                self.landmark_msg = AprilTagDetectionArray()
+                self.landmark_msg.header = bboxes.header
+                self.landmark_msg.header.stamp = bboxes.header.stamp
+                self.landmark_msg.header.frame_id = bboxes.header.frame_id
+                try:
+                    tan_angle_x = camera_param[0][0]*((bbox.xmin+bbox.xmax)/2) + camera_param[0][2]*1 
+                    angle_x = math.atan(tan_angle_x)
+                    if abs(math.degrees(angle_x)) < 35:
+                        detected_area = DepthImage[(bbox.ymin + (bbox.ymax - bbox.ymin)/4):(bbox.ymax - (bbox.ymax - bbox.ymin)/4), (bbox.xmin + (bbox.xmax - bbox.xmin)/4):(bbox.xmax - (bbox.xmax - bbox.xmin)/4)]
+                        detected_area = np.where(detected_area == 0.0, detected_area, detected_area)
+                        detected_area = np.where(detected_area > 10.0, detected_area, np.nan)
+                        distance_x = np.nanmedian(detected_area)/1000
+                        distance_x = distance_x
+                        distance_y = - distance_x * tan_angle_x
+                        distance_e = (distance_x * distance_x + distance_y * distance_y)**0.5
+                        if 3.0 < distance_x < 6.0:
+                            now = rospy.Time.now()
+                            distance_e = distance_x * distance_x / 5+ distance_y * distance_y / 3
+                            self.landmark_msg.detections.append(AprilTagDetection())
+                            landmark_name = "/" + bbox.Class + bboxes.header.frame_id + str(now)
+                            self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(),landmark_name ,bboxes.header.frame_id)
+                            self.tf_listener.waitForTransform(bboxes.header.frame_id, landmark_name, rospy.Time(0), rospy.Duration(0.1))
+                            landmark_position = self.tf_listener.lookupTransform(bboxes.header.frame_id, landmark_name, rospy.Time(0))
+                            self.landmark_msg.detections[0].size = [1]
+                            self.landmark_msg.detections[0].pose.header = bboxes.header
+                            self.landmark_msg.detections[0].pose.header.frame_id = bboxes.header.frame_id
+                            self.landmark_msg.detections[0].pose.pose.pose.position.x = landmark_position[0][0]
+                            self.landmark_msg.detections[0].pose.pose.pose.position.y = landmark_position[0][1]
+                            self.landmark_msg.detections[0].pose.pose.pose.position.z = landmark_position[0][2]
+                            self.landmark_msg.detections[0].pose.pose.covariance = [distance_e, 0, 0, 0, 0, 0, 0, distance_e, 0, 0, 0, 0, 0, 0, distance_e * 10, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0,0, 0, 0, 0, 9999]
+                            self.position = PoseWithCovarianceStamped()
+                            self.position.header = self.odom.header
+                            self.position.header.frame_id = "base_link"
+                            base_link_name = "/base_link" + str(now)
+                            base_link_position = self.tf_listener.lookupTransform("map", "base_link", rospy.Time(0))
+                            self.tf_br.sendTransform(base_link_position[0], tf.transformations.quaternion_from_euler(0.0, 0.0, 0.0), rospy.Time.now(), base_link_name ,"map")
+                            gnss_position = self.tf_listener.lookupTransform(base_link_name, landmark_name, rospy.Time(0))
+                            orientation = [self.odom.pose.pose.orientation.x, self.odom.pose.pose.orientation.y, - self.odom.pose.pose.orientation.z, self.odom.pose.pose.orientation.w]
+                            e = tf.transformations.euler_from_quaternion(orientation)
+                            if ((base_link_position[0][0] - (367933.061032 - self.start.pose.pose.position.x))**2 + (base_link_position[0][1] - (3955734.62339 - self.start.pose.pose.position.y))**2) < ((base_link_position[0][0] - (367957.18309 - self.start.pose.pose.position.x))**2 + (base_link_position[0][1] - (3955741.34757 - self.start.pose.pose.position.y))**2):
+                                self.landmark_msg.detections[0].id = [1]
+                                gnss_x = 367933.061032 - self.start.pose.pose.position.x
+                                gnss_y = 3955734.62339 - self.start.pose.pose.position.y
+                            else:
+                                self.landmark_msg.detections[0].id = [2]
+                                gnss_x = 367957.18309 - self.start.pose.pose.position.x
+                                gnss_y = 3955741.34757 - self.start.pose.pose.position.y
+                            self.position.pose.pose.position.x = gnss_x - gnss_position[0][0]
+                            self.position.pose.pose.position.y = gnss_y - gnss_position[0][1]
+                            self.position.pose.pose.position.z = 0
+                            self.position.pose.pose.orientation = self.odom.pose.pose.orientation
+                            self.position.pose.covariance = [0.5, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0,0, 0, 0, 0, 9999]
+                            self.marker_data.markers.append(Marker())
+                            self.marker_data.markers[0].header.stamp, self.marker_data.markers[0].header.frame_id = bboxes.header.stamp, "map"     
+                            self.marker_data.markers[0].ns, self.marker_data.markers[0].id = bbox.Class, 0
+                            self.marker_data.markers[0].action = Marker.ADD
+                            self.marker_data.markers[0].pose.position.x, self.marker_data.markers[0].pose.position.y, self.marker_data.markers[0].pose.position.z = gnss_x, gnss_y, 0.5
+                            self.marker_data.markers[0].pose.orientation.x, self.marker_data.markers[0].pose.orientation.y, self.marker_data.markers[0].pose.orientation.z, self.marker_data.markers[0].pose.orientation.w= tf.transformations.quaternion_from_euler(0, 0, 0) 
+                            self.marker_data.markers[0].color.r, self.marker_data.markers[0].color.g, self.marker_data.markers[0].color.b, self.marker_data.markers[0].color.a = 1, 0, 0, 1
+                            self.marker_data.markers[0].scale.x, self.marker_data.markers[0].scale.y, self.marker_data.markers[0].scale.z = 0.2, 0.2, 1
+                            self.marker_data.markers[0].type = 3
+                            self.marker_data.markers.append(Marker())
+                            self.marker_data.markers[1].header.stamp, self.marker_data.markers[1].header.frame_id = bboxes.header.stamp, "map"     
+                            self.marker_data.markers[1].ns, self.marker_data.markers[1].id = bbox.Class, 1
+                            self.marker_data.markers[1].action = Marker.ADD
+                            self.marker_data.markers[1].pose.position.x, self.marker_data.markers[1].pose.position.y, self.marker_data.markers[1].pose.position.z = self.position.pose.pose.position.x, self.position.pose.pose.position.y, 0.0
+                            self.marker_data.markers[1].pose.orientation.x, self.marker_data.markers[1].pose.orientation.y, self.marker_data.markers[1].pose.orientation.z, self.marker_data.markers[1].pose.orientation.w= tf.transformations.quaternion_from_euler(0, 0, 0) 
+                            self.marker_data.markers[1].color.r, self.marker_data.markers[1].color.g, self.marker_data.markers[1].color.b, self.marker_data.markers[1].color.a = 1, 0, 0, 1
+                            self.marker_data.markers[1].scale.x, self.marker_data.markers[1].scale.y, self.marker_data.markers[1].scale.z = 0.5, 0.5, 0.5
+                            self.marker_data.markers[1].type = 1
+                            if (gnss_x - gnss_position[0][0] - base_link_position[0][0]) ** 2 + (gnss_y - gnss_position[0][1] - base_link_position[0][1]) ** 2 < 5:
+                                #self.landmark_publisher.publish(self.landmark_msg) 
+                                self.gnss_publisher.publish(self.position)
+                                self.marker_publisher.publish(self.marker_data)
+                                rospy.sleep(0.2)
+                except Exception as e:
+                    print(e)
             if bbox.Class in self.obstacle_list:
                 try:
                     tan_angle_x = camera_param[0][0]*(bbox.xmin+bbox.xmax)/2+camera_param[0][1]*(bbox.ymin+bbox.ymax)/2+camera_param[0][2]*1 
@@ -167,28 +245,39 @@ class Publishsers():
         prev_marker_in_area = MarkerArray() 
         try:
             for i, prev_obstacle in enumerate(self.obstacle_msg.obstacles):
-                if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) < 10 and abs(current_position[0][1] - prev_obstacle.polygon.points[0].y) < 10:
+                if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) < 100 and abs(current_position[0][1] - prev_obstacle.polygon.points[0].y) < 100:
                     prev_obstacle_in_area.obstacles.append(prev_obstacle)
                     #prev_marker_in_area.markers.append(prev_marker)
             self.obstacle_msg.obstacles = prev_obstacle_in_area.obstacles
         except Exception as e:
             print("例外" + str(e))
-        for detected_obstacle, marker in zip(detected_obstacle_msg.obstacles, marker_msg.markers):
+        for detected_obstacle in detected_obstacle_msg.obstacles:
             if len(prev_obstacle_in_area.obstacles) > 0:
-                for prev_obstacle, prev_marker in zip(self.obstacle_msg.obstacles, prev_marker_in_area.markers):
+                for prev_obstacle in self.obstacle_msg.obstacles:
                     try:
+                        print("detected_obstacle")
+                        print((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y))
                         if ((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y)) < 1.0:
                             prev_obstacle.polygon.points[0].x = detected_obstacle.polygon.points[0].x 
                             prev_obstacle.polygon.points[0].y = detected_obstacle.polygon.points[0].y
-                            prev_marker.pose.position.x = marker.pose.position.x 
-                            prev_marker.pose.position.y = marker.pose.position.y
-                            self.obstacle_msg.obstacles.append(prev_obstacle)                    
-                            updated_marker_data.markers.append(prev_marker)                         
+                            #prev_marker.pose.position.x = marker.pose.position.x 
+                            #prev_marker.pose.position.y = marker.pose.position.y
+                            if not len(prev_obstacle.polygon.points):
+                                updated_obstacle_msg.obstacles.append(prev_obstacle)                    
+                            #updated_marker_data.markers.append(prev_marker)    
+                        else:     
+                            print("In")      
+                            print(len(detected_obstacle.polygon.points))
+                            if not len(detected_obstacle.polygon.points) == 0:
+                                updated_obstacle_msg.obstacles.append(detected_obstacle)                               
                     except Exception as e:
                         print("例外" + str(e))
             else:      
                 self.obstacle_msg.obstacles.append(detected_obstacle)                    
-                updated_marker_data.markers.append(marker)
+                #updated_marker_data.markers.append(marker)
+        for obstacle in updated_obstacle_msg.obstacles: 
+            if len(prev_obstacle.polygon.points) > 0:
+                self.obstacle_msg.obstacles.append(obstacle)
         return self.obstacle_msg.obstacles, marker_msg.markers
 
 class Subscribe_publishers():

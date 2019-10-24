@@ -27,7 +27,7 @@ class Publishsers():
         self.landmark_publisher = rospy.Publisher("/rtabmap/tag_detections", AprilTagDetectionArray, queue_size = 1)
         self.gnss_publisher = rospy.Publisher("/rtabmap/global_pose", PoseWithCovarianceStamped, queue_size = 1)
         self.obstacle_list = ["landmark"]
-        self.landmark_list = ["landmark"]
+        self.landmark_list = ["tmp"]
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
         self.obstacle_msg = ObstacleArrayMsg() 
@@ -244,7 +244,7 @@ class Subscribe_publishers():
 
     def pub_msg(self):
         self.pub.make_msg(self.depth1_image, self.depth2_image, self.detection_data, self.camera1_parameter, self.camera2_parameter, self.odom, self.start_position)
-        self.pub.send_msg()
+        #self.pub.send_msg()
 
 def main():
     # nodeの立ち上げ
