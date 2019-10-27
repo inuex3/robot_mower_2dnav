@@ -22,12 +22,11 @@ import math
 class Publishsers():
     def __init__(self):
         # Publisherを作成
-        self.publisher = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.marker_publisher = rospy.Publisher("/visualized_obstacle", MarkerArray, queue_size = 1)
         self.landmark_publisher = rospy.Publisher("/rtabmap/tag_detections", AprilTagDetectionArray, queue_size = 1)
         self.gnss_publisher = rospy.Publisher("/rtabmap/global_pose", PoseWithCovarianceStamped, queue_size = 1)
         self.obstacle_list = ["landmark"]
-        self.landmark_list = ["tmp"]
+        self.landmark_list = ["landmark"]
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
         self.obstacle_msg = ObstacleArrayMsg() 
@@ -77,8 +76,7 @@ class Publishsers():
             pass
 
     def send_msg(self):
-        self.publisher.publish(self.obstacle_msg)
-        #self.marker_publisher.publish(self.marker_data)
+        #self.publisher.publish(self.obstacle_msg)
         self.gnss_publisher.publish(self.position)
         self.marker_publisher.publish(self.marker_data)
     
@@ -101,7 +99,7 @@ class Publishsers():
                     if abs(math.degrees(angle_x)) < 35:
                         detected_area = DepthImage[(bbox.ymin + (bbox.ymax - bbox.ymin)/4):(bbox.ymax - (bbox.ymax - bbox.ymin)/4), (bbox.xmin + (bbox.xmax - bbox.xmin)/4):(bbox.xmax - (bbox.xmax - bbox.xmin)/4)]
                         detected_area = np.where(detected_area == 0.0, detected_area, detected_area)
-                        detected_area = np.where(detected_area > 10.0, detected_area, np.nan)
+                        detected_area = np.where(detected_area > 8.0, detected_area, np.nan)
                         distance_x = np.nanmedian(detected_area)/1000
                         distance_x = distance_x
                         distance_y = - distance_x * tan_angle_x

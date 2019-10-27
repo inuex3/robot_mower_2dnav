@@ -26,9 +26,11 @@ class Publishsers():
         self.marker_publisher = rospy.Publisher("/visualized_obstacle", MarkerArray, queue_size = 1)
         self.landmark_publisher = rospy.Publisher("/rtabmap/tag_detections", AprilTagDetectionArray, queue_size = 1)
         self.gnss_publisher = rospy.Publisher("/rtabmap/global_pose", PoseWithCovarianceStamped, queue_size = 1)
-        self.object_list = ["landmark"]
-        self.obstacle_list = ["landmark"]
-        self.landmark_list = ["tmp"]
+        self.object_list = ["landmark", "obstacle"]
+        self.obstacle_list = ["obstacle"]
+        self.landmark_list = ["landmark"]
+        self.landmark_gnss = rospy.get_param('~landmark_gnss')
+        print(self.landmark_gnss[0][1])
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
         self.obstacle_msg = ObstacleArrayMsg() 
@@ -86,7 +88,6 @@ class Publishsers():
 
     def send_msg(self):
         self.publisher.publish(self.obstacle_msg)
-        self.gnss_publisher.publish(self.position)
         self.marker_publisher.publish(self.marker_data)
     
     def bbox_to_position_in_odom(self, bboxes, DepthImage, camera_param, i=0, obstacle_msg=ObstacleArrayMsg(), marker_data=MarkerArray()):
@@ -137,14 +138,14 @@ class Publishsers():
                             gnss_position = self.tf_listener.lookupTransform(base_link_name, landmark_name, rospy.Time(0))
                             orientation = [self.odom.pose.pose.orientation.x, self.odom.pose.pose.orientation.y, - self.odom.pose.pose.orientation.z, self.odom.pose.pose.orientation.w]
                             e = tf.transformations.euler_from_quaternion(orientation)
-                            if ((base_link_position[0][0] - (367933.061032 - self.start.pose.pose.position.x))**2 + (base_link_position[0][1] - (3955734.62339 - self.start.pose.pose.position.y))**2) < ((base_link_position[0][0] - (367957.18309 - self.start.pose.pose.position.x))**2 + (base_link_position[0][1] - (3955741.34757 - self.start.pose.pose.position.y))**2):
+                            if ((base_link_position[0][0] - (self.landmark_gnss[0][0] - self.start.pose.pose.position.x))**2 + (base_link_position[0][1] - (self.landmark_gnss[0][1] - self.start.pose.pose.position.y))**2) < ((base_link_position[0][0] - (self.landmark_gnss[1][0] - self.start.pose.pose.position.x))**2 + (base_link_position[0][1] - (self.landmark_gnss[1][1] - self.start.pose.pose.position.y))**2):
                                 self.landmark_msg.detections[0].id = [1]
-                                gnss_x = 367933.061032 - self.start.pose.pose.position.x
-                                gnss_y = 3955734.62339 - self.start.pose.pose.position.y
+                                gnss_x = self.landmark_gnss[0][0] - self.start.pose.pose.position.x
+                                gnss_y = self.landmark_gnss[0][1] - self.start.pose.pose.position.y
                             else:
                                 self.landmark_msg.detections[0].id = [2]
-                                gnss_x = 367957.18309 - self.start.pose.pose.position.x
-                                gnss_y = 3955741.34757 - self.start.pose.pose.position.y
+                                gnss_x = self.landmark_gnss[1][0] - self.start.pose.pose.position.x
+                                gnss_y = self.landmark_gnss[1][1] - self.start.pose.pose.position.y
                             self.position.pose.pose.position.x = gnss_x - gnss_position[0][0]
                             self.position.pose.pose.position.y = gnss_y - gnss_position[0][1]
                             self.position.pose.pose.position.z = 0
@@ -168,11 +169,8 @@ class Publishsers():
                             self.marker_data.markers[1].color.r, self.marker_data.markers[1].color.g, self.marker_data.markers[1].color.b, self.marker_data.markers[1].color.a = 1, 0, 0, 1
                             self.marker_data.markers[1].scale.x, self.marker_data.markers[1].scale.y, self.marker_data.markers[1].scale.z = 0.5, 0.5, 0.5
                             self.marker_data.markers[1].type = 1
-                            if (gnss_x - gnss_position[0][0] - base_link_position[0][0]) ** 2 + (gnss_y - gnss_position[0][1] - base_link_position[0][1]) ** 2 < 5:
-                                #self.landmark_publisher.publish(self.landmark_msg) 
-                                self.gnss_publisher.publish(self.position)
-                                self.marker_publisher.publish(self.marker_data)
-                                rospy.sleep(0.2)
+                            self.gnss_publisher.publish(self.position)
+                            self.marker_publisher.publish(self.marker_data)
                 except Exception as e:
                     print(e)
             if bbox.Class in self.obstacle_list:
@@ -291,7 +289,7 @@ class Subscribe_publishers():
         self.odom_subscriber = message_filters.Subscriber('/odometry/filtered', Odometry)
         self.camera1_param_subscriber = rospy.Subscriber("/camera1/color/camera_info", CameraInfo, self.camera1_parameter_callback)
         self.camera2_param_subscriber = rospy.Subscriber("/camera2/color/camera_info", CameraInfo, self.camera2_parameter_callback)
-        self.start_subscriber = rospy.Subscriber('/gnss_odom', Odometry, self.gnss_start_callback)
+        self.start_subscriber = rospy.Subscriber('/set_start', Odometry, self.gnss_start_callback)
 
         # messageの型を作成
         self.pub = pub
@@ -322,15 +320,14 @@ class Subscribe_publishers():
         self.camera2_param_subscriber.unregister() 
 
     def gnss_start_callback(self, Odom):
-        if Odom.header.seq == 23872:
-            start = Odom
-            start.header.frame_id = "base_link"
-            self.start_position.pose.pose.position.x = start.pose.pose.position.x
-            self.start_position.pose.pose.position.y = start.pose.pose.position.y
-            self.start_position.pose.pose.orientation = start.pose.pose.orientation
-            print ("start_x:" + str(start.pose.pose.position.x))
-            print ("start_y:" + str(start.pose.pose.position.y))
-            self.start_subscriber.unregister() 
+        start = Odom
+        start.header.frame_id = "base_link"
+        self.start_position.pose.pose.position.x = start.pose.pose.position.x
+        self.start_position.pose.pose.position.y = start.pose.pose.position.y
+        self.start_position.pose.pose.orientation = start.pose.pose.orientation
+        print ("start_x:" + str(start.pose.pose.position.x))
+        print ("start_y:" + str(start.pose.pose.position.y))
+        self.start_subscriber.unregister() 
 
     def odom_callback(self, Odom):
         self.odom = Odometry()
