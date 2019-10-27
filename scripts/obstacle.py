@@ -247,7 +247,6 @@ class Publishsers():
             for i, prev_obstacle in enumerate(self.obstacle_msg.obstacles):
                 if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) < 100 and abs(current_position[0][1] - prev_obstacle.polygon.points[0].y) < 100:
                     prev_obstacle_in_area.obstacles.append(prev_obstacle)
-                    #prev_marker_in_area.markers.append(prev_marker)
             self.obstacle_msg.obstacles = prev_obstacle_in_area.obstacles
         except Exception as e:
             print("例外" + str(e))
@@ -270,15 +269,13 @@ class Publishsers():
                             #updated_marker_data.markers.append(prev_marker)    
                             Updated = True
                     except Exception as e:
-                        print("例外" + str(e))
+                        pass
                 if not Updated:     
                     if not len(detected_obstacle.polygon.points) == 0:
                         self.obstacle_msg.obstacles.append(detected_obstacle)   
                     #    print("3") 
             else:     
-                print("4")
                 self.obstacle_msg.obstacles.append(detected_obstacle)   
-                print("5")        
         self.obstacle_msg.obstacles = list(set(self.obstacle_msg.obstacles))
         #for obstacle in updated_obstacle_msg.obstacles: 
         #    if len(prev_obstacle.polygon.points) > 0:
