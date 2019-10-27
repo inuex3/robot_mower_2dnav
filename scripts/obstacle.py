@@ -253,31 +253,37 @@ class Publishsers():
             print("例外" + str(e))
         for detected_obstacle in detected_obstacle_msg.obstacles:
             if len(prev_obstacle_in_area.obstacles) > 0:
-                for prev_obstacle in self.obstacle_msg.obstacles:
+                num = len(self.obstacle_msg.obstacles)
+                Updated = False
+                for i in range(num):
                     try:
-                        print("detected_obstacle")
-                        print((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y))
-                        if ((detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - prev_obstacle.polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - prev_obstacle.polygon.points[0].y)) < 1.0:
-                            prev_obstacle.polygon.points[0].x = detected_obstacle.polygon.points[0].x 
-                            prev_obstacle.polygon.points[0].y = detected_obstacle.polygon.points[0].y
+                        if ((detected_obstacle.polygon.points[0].x - self.obstacle_msg.obstacles[i].polygon.points[0].x) * (detected_obstacle.polygon.points[0].x - self.obstacle_msg.obstacles[i].polygon.points[0].x) + (detected_obstacle.polygon.points[0].y - self.obstacle_msg.obstacles[i].polygon.points[0].y) * (detected_obstacle.polygon.points[0].y - self.obstacle_msg.obstacles[i].polygon.points[0].y)) < 1.0:
+                            self.obstacle_msg.obstacles[i].header.stamp.secs = 0
+                            self.obstacle_msg.obstacles[i].header.stamp.nsecs = 0
+                            self.obstacle_msg.obstacles[i].polygon.points[0].x = detected_obstacle.polygon.points[0].x 
+                            self.obstacle_msg.obstacles[i].polygon.points[0].y = detected_obstacle.polygon.points[0].y
                             #prev_marker.pose.position.x = marker.pose.position.x 
                             #prev_marker.pose.position.y = marker.pose.position.y
-                            if not len(prev_obstacle.polygon.points):
-                                updated_obstacle_msg.obstacles.append(prev_obstacle)                    
+                            #if not len(detected_obstacle.polygon.points) == 0:
+                            #updated_obstacle_msg.obstacles.append(detected_obstacle)  
+                            #print("1")                  
                             #updated_marker_data.markers.append(prev_marker)    
-                        else:     
-                            print("In")      
-                            print(len(detected_obstacle.polygon.points))
-                            if not len(detected_obstacle.polygon.points) == 0:
-                                updated_obstacle_msg.obstacles.append(detected_obstacle)                               
+                            Updated = True
                     except Exception as e:
                         print("例外" + str(e))
-            else:      
-                self.obstacle_msg.obstacles.append(detected_obstacle)                    
-                #updated_marker_data.markers.append(marker)
-        for obstacle in updated_obstacle_msg.obstacles: 
-            if len(prev_obstacle.polygon.points) > 0:
-                self.obstacle_msg.obstacles.append(obstacle)
+                if not Updated:     
+                    if not len(detected_obstacle.polygon.points) == 0:
+                        self.obstacle_msg.obstacles.append(detected_obstacle)   
+                    #    print("3") 
+            else:     
+                print("4")
+                self.obstacle_msg.obstacles.append(detected_obstacle)   
+                print("5")        
+        self.obstacle_msg.obstacles = list(set(self.obstacle_msg.obstacles))
+        #for obstacle in updated_obstacle_msg.obstacles: 
+        #    if len(prev_obstacle.polygon.points) > 0:
+        #        print("4")                                              
+        #self.obstacle_msg.obstacles.append(obstacle)
         return self.obstacle_msg.obstacles, marker_msg.markers
 
 class Subscribe_publishers():
