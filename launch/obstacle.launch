@@ -6,4 +6,7 @@
   <node name="obstacle" pkg="robot_mower_2dnav" type="obstacle.py" respawn="false" output="screen">
     <rosparam file="$(arg config_file)" command="load"/>
   </node>
+  <node name="publish_point" pkg="robot_mower_2dnav" type="goal_point_pub.py" respawn="false" output="screen">
+    <rosparam file="$(arg config_file)" command="load"/>
+  </node>
 </launch>

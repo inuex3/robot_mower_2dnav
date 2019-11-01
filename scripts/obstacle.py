@@ -243,7 +243,7 @@ class Publishsers():
         prev_marker_in_area = MarkerArray() 
         try:
             for i, prev_obstacle in enumerate(self.obstacle_msg.obstacles):
-                if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) < 100 and abs(current_position[0][1] - prev_obstacle.polygon.points[0].y) < 100:
+                if abs(current_position[0][0] - prev_obstacle.polygon.points[0].x) < 6 and abs(current_position[0][1] - prev_obstacle.polygon.points[0].y) < 6:
                     prev_obstacle_in_area.obstacles.append(prev_obstacle)
             self.obstacle_msg.obstacles = prev_obstacle_in_area.obstacles
         except Exception as e:
