@@ -37,7 +37,6 @@ def callback(Odom, gps):
         gnss_odom.header.frame_id = "map"
         gnss_odom.pose.pose.position.x = (Odom.pose.pose.position.x - start.pose.pose.position.x)
         gnss_odom.pose.pose.position.y = (Odom.pose.pose.position.y - start.pose.pose.position.y)
-        gnss_odom.pose.pose.position.y = (Odom.pose.pose.position.y - start.pose.pose.position.y)
         orientation = quaternion_multiply((Odom.pose.pose.orientation.x,Odom.pose.pose.orientation.y,Odom.pose.pose.orientation.z,Odom.pose.pose.orientation.w), (start.pose.pose.orientation.x,start.pose.pose.orientation.y,start.pose.pose.orientation.z,start.pose.pose.orientation.w)) 
         gnss_odom.pose.pose.orientation.x, gnss_odom.pose.pose.orientation.y, gnss_odom.pose.pose.orientation.z, gnss_odom.pose.pose.orientation.w = orientation[0], orientation[1], orientation[2], orientation[3]
         pub.publish(gnss_odom)
