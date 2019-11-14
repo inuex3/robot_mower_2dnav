@@ -16,6 +16,8 @@ Panels:
         - /Path2
         - /MarkerArray2
         - /MarkerArray3
+        - /Odometry2
+        - /Odometry2/Shape1
       Splitter Ratio: 0.4110580086708069
     Tree Height: 377
   - Class: rviz/Selection
@@ -340,7 +342,7 @@ Visualization Manager:
       Marker Topic: /move_base/TebLocalPlannerROS/teb_markers
       Name: Marker
       Namespaces:
-        ViaPoints: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 0.699999988079071
@@ -423,6 +425,40 @@ Visualization Manager:
       Topic: /move_base/current_goal
       Unreliable: false
       Value: true
+    - Angle Tolerance: 0.10000000149011612
+      Class: rviz/Odometry
+      Covariance:
+        Orientation:
+          Alpha: 0.5
+          Color: 255; 255; 127
+          Color Style: Unique
+          Frame: Local
+          Offset: 1
+          Scale: 1
+          Value: true
+        Position:
+          Alpha: 0.30000001192092896
+          Color: 204; 51; 204
+          Scale: 1
+          Value: true
+        Value: true
+      Enabled: true
+      Keep: 1
+      Name: Odometry
+      Position Tolerance: 0.10000000149011612
+      Shape:
+        Alpha: 1
+        Axes Length: 1
+        Axes Radius: 0.10000000149011612
+        Color: 255; 255; 0
+        Head Length: 0.30000001192092896
+        Head Radius: 0.10000000149011612
+        Shaft Length: 1
+        Shaft Radius: 0.05000000074505806
+        Value: Arrow
+      Topic: /gnss_odom_from_start
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -465,10 +501,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7197966575622559
+      Pitch: 1.269796371459961
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 3.372824192047119
+      Yaw: 6.05282735824585
     Saved: ~
 Window Geometry:
   Displays:
@@ -489,4 +525,4 @@ Window Geometry:
     collapsed: false
   Width: 1389
   X: 298
-  Y: 286
+  Y: 256
