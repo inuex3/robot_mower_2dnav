@@ -12,7 +12,6 @@ from geometry_msgs.msg import Point32
 import numpy as np
 from darknet_ros_msgs.msg import BoundingBoxes,BoundingBox
 from nav_msgs.msg import Odometry
-from apriltags2_ros.msg import AprilTagDetection, AprilTagDetectionArray
 from geometry_msgs.msg import PoseWithCovarianceStamped, Pose
 import tf
 import cv2
@@ -23,7 +22,6 @@ class Publishsers():
     def __init__(self):
         # Publisherを作成
         self.marker_publisher = rospy.Publisher("/visualized_obstacle", MarkerArray, queue_size = 1)
-        self.landmark_publisher = rospy.Publisher("/rtabmap/tag_detections", AprilTagDetectionArray, queue_size = 1)
         self.gnss_publisher = rospy.Publisher("/rtabmap/global_pose", PoseWithCovarianceStamped, queue_size = 1)
         self.obstacle_list = ["landmark"]
         self.landmark_list = ["landmark"]
@@ -31,7 +29,6 @@ class Publishsers():
         self.tf_listener = tf.TransformListener()
         self.obstacle_msg = ObstacleArrayMsg() 
         self.marker_data = MarkerArray()
-        self.landmark_msg = AprilTagDetectionArray()
         self.prev_landmark = [2]
         self.odom = Odometry()
         self.start = PoseWithCovarianceStamped()
@@ -89,10 +86,6 @@ class Publishsers():
             del marker_data.markers[:]
         for bbox in bboxes.bounding_boxes:
             if bbox.Class in self.landmark_list:
-                self.landmark_msg = AprilTagDetectionArray()
-                self.landmark_msg.header = bboxes.header
-                self.landmark_msg.header.stamp = bboxes.header.stamp
-                self.landmark_msg.header.frame_id = bboxes.header.frame_id
                 try:
                     tan_angle_x = camera_param[0][0]*((bbox.xmin+bbox.xmax)/2) + camera_param[0][2]*1 
                     angle_x = math.atan(tan_angle_x)
@@ -107,18 +100,9 @@ class Publishsers():
                         if 3.0 < distance_x < 6.0:
                             now = rospy.Time.now()
                             distance_e = distance_x * distance_x / 5+ distance_y * distance_y / 3
-                            self.landmark_msg.detections.append(AprilTagDetection())
                             landmark_name = "/" + bbox.Class + bboxes.header.frame_id + str(now)
                             self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(),landmark_name ,bboxes.header.frame_id)
                             self.tf_listener.waitForTransform(bboxes.header.frame_id, landmark_name, rospy.Time(0), rospy.Duration(0.1))
-                            landmark_position = self.tf_listener.lookupTransform(bboxes.header.frame_id, landmark_name, rospy.Time(0))
-                            self.landmark_msg.detections[0].size = [1]
-                            self.landmark_msg.detections[0].pose.header = bboxes.header
-                            self.landmark_msg.detections[0].pose.header.frame_id = bboxes.header.frame_id
-                            self.landmark_msg.detections[0].pose.pose.pose.position.x = landmark_position[0][0]
-                            self.landmark_msg.detections[0].pose.pose.pose.position.y = landmark_position[0][1]
-                            self.landmark_msg.detections[0].pose.pose.pose.position.z = landmark_position[0][2]
-                            self.landmark_msg.detections[0].pose.pose.covariance = [distance_e, 0, 0, 0, 0, 0, 0, distance_e, 0, 0, 0, 0, 0, 0, distance_e * 10, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0,0, 0, 0, 0, 9999]
                             self.position = PoseWithCovarianceStamped()
                             self.position.header = self.odom.header
                             self.position.header.frame_id = "base_link"

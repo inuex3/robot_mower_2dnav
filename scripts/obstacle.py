@@ -112,11 +112,11 @@ class Publishsers():
                         distance_x = distance_x
                         distance_y = - distance_x * tan_angle_x
                         distance_e = (distance_x * distance_x + distance_y * distance_y)**0.5
-                        if 3.0 < distance_x < 6.0:
+                        if 1.0 < distance_x < 6.0:
                             now = rospy.Time.now()
                             #self.landmark_msg.detections.append(AprilTagDetection())
                             landmark_name = "/" + bbox.Class + bboxes.header.frame_id + str(now)
-                            #self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(),landmark_name ,bboxes.header.frame_id)
+                            self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(),landmark_name ,bboxes.header.frame_id)
                             #self.tf_listener.waitForTransform(bboxes.header.frame_id, "/" + bbox.Class + str(i), rospy.Time(0), rospy.Duration(0.1))
                             #landmark_position = self.tf_listener.lookupTransform(bboxes.header.frame_id, "/" + bbox.Class + str(i), now)
                             #self.landmark_msg.detections[0].size = [1]
@@ -132,9 +132,11 @@ class Publishsers():
                             base_link_name = "/base_link" + str(now)
                             base_link_position = self.tf_listener.lookupTransform("map", "base_link", rospy.Time(0))
                             self.tf_br.sendTransform(base_link_position[0], tf.transformations.quaternion_from_euler(0.0, 0.0, 0.0), rospy.Time.now(), base_link_name ,"map")
+                            self.tf_br.sendTransform((-distance_y, 0, distance_x), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), bbox.Class + str(i), bboxes.header.frame_id)
                             gnss_position = self.tf_listener.lookupTransform(base_link_name, "/" + bbox.Class + str(i), rospy.Time(0))
                             orientation = [self.odom.pose.pose.orientation.x, self.odom.pose.pose.orientation.y, - self.odom.pose.pose.orientation.z, self.odom.pose.pose.orientation.w]
                             e = tf.transformations.euler_from_quaternion(orientation)
+                            print(base_link_position)
                             if ((base_link_position[0][0] - (self.landmark_gnss[0][0] - self.start.pose.pose.position.x))**2 + (base_link_position[0][1] - (self.landmark_gnss[0][1] - self.start.pose.pose.position.y))**2) < ((base_link_position[0][0] - (self.landmark_gnss[1][0] - self.start.pose.pose.position.x))**2 + (base_link_position[0][1] - (self.landmark_gnss[1][1] - self.start.pose.pose.position.y))**2):
                                 #self.landmark_msg.detections[0].id = [1]
                                 gnss_x = self.landmark_gnss[0][0] - self.start.pose.pose.position.x
@@ -284,7 +286,7 @@ class Subscribe_publishers():
         self.odom_subscriber = message_filters.Subscriber('/odometry/filtered', Odometry)
         self.camera1_param_subscriber = rospy.Subscriber("/camera1/color/camera_info", CameraInfo, self.camera1_parameter_callback)
         self.camera2_param_subscriber = rospy.Subscriber("/camera2/color/camera_info", CameraInfo, self.camera2_parameter_callback)
-        self.start_subscriber = rospy.Subscriber('/set_start', Odometry, self.gnss_start_callback)
+        self.start_subscriber = rospy.Subscriber('/gnss_odom', Odometry, self.gnss_start_callback)
 
         # messageの型を作成
         self.pub = pub
@@ -313,7 +315,7 @@ class Subscribe_publishers():
         print ("Camera parameter:")
         print (camera_parameter_org)
         self.camera2_param_subscriber.unregister() 
-
+    """
     def gnss_start_callback(self, Odom):
         start = Odom
         start.header.frame_id = "base_link"
@@ -323,7 +325,6 @@ class Subscribe_publishers():
         print ("start_x:" + str(start.pose.pose.position.x))
         print ("start_y:" + str(start.pose.pose.position.y))
         self.start_subscriber.unregister() 
-
     """
     def gnss_start_callback(self, Odom):
         if Odom.header.seq == 23872:
@@ -335,7 +336,6 @@ class Subscribe_publishers():
             print ("start_x:" + str(start.pose.pose.position.x))
             print ("start_y:" + str(start.pose.pose.position.y))
             self.start_subscriber.unregister() 
-    """
 
     def odom_callback(self, Odom):
         self.odom = Odometry()

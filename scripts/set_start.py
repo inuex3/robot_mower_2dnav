@@ -20,7 +20,7 @@ tf_br = tf.TransformBroadcaster()
 tf_listener = tf.TransformListener()
 
 def print_obstacle_and_landmark_position(x, y, heading):
-    obstacle_position = rospy.get_param('/publish_point/obstacle_position')
+    obstacle_position = rospy.get_param('/obstacle/obstacle_position')
     point.header.frame_id = "map"
     for i, p in enumerate(obstacle_position): 
         point.header.stamp = rospy.Time.now()
@@ -31,13 +31,13 @@ def print_obstacle_and_landmark_position(x, y, heading):
         point.point.x = point_position[0][0] * math.cos(heading) - point_position[0][1]*math.sin(heading) + x
         point.point.y = point_position[0][0] * math.cos(heading) + point_position[0][1]*math.sin(heading) + y
         #print(point)
-        rospy.sleep(1)
+        rospy.sleep(0.1)
 
 def publish_goal(heading):
-    rospy.sleep(1)
+    rospy.sleep(0.1)
     point.header.frame_id = "map"
-    goal_point = rospy.get_param('/publish_point/goal_point')
-    heading = heading# + math.pi/2
+    goal_point = rospy.get_param('/obstacle/goal_point')
+    heading = heading - math.pi/2
     for i, p in enumerate(goal_point): 
         point.header.stamp = rospy.Time.now()
         tf_br.sendTransform((p[0], p[1], 0), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "point" + str(i), "odom")
@@ -49,7 +49,7 @@ def publish_goal(heading):
         point.point.y = point_position[0][0] * math.sin(heading) + point_position[0][1]*math.cos(heading)
         point.point.z = 0.0
         pub.publish(point)
-        rospy.sleep(1)
+        rospy.sleep(0.1)
 
 def callback_odom(Odom):
     global n
@@ -62,16 +62,16 @@ def callback_odom(Odom):
     heading = math.atan(e[2]) - math.pi/2
     reset_pose(0.0, 0.0, 0.0, 0, 0, heading)
     posi.header.stamp = rospy.Time.now()
-    posi.pose.pose.position.x = 0.0
-    posi.pose.pose.position.y = 0.0
-    posi.header.frame_id = "base_link"
-    posi.pose.pose.orientation = start.pose.pose.orientation
-    posi.pose.covariance = [0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999]
-    time_before = rospy.get_time()
-    pose_pub.publish(posi)
+    #posi.pose.pose.position.x = 0.0
+    #posi.pose.pose.position.y = 0.0
+    #posi.header.frame_id = "base_link"
+    #posi.pose.pose.orientation = start.pose.pose.orientation
+    #posi.pose.covariance = [0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999]
+    #time_before = rospy.get_time()
+    #pose_pub.publish(posi)
     start_pub.publish(start)
     subscriber.unregister()
-    rospy.sleep(8)
+    rospy.sleep(1)
     print_obstacle_and_landmark_position(start.pose.pose.position.x, start.pose.pose.position.y, heading)
     raw_input("\nPress Enter to publish point...")
     publish_goal(heading)
@@ -82,7 +82,7 @@ def listen():
     rospy.spin()
 
 def main():
-    rospy.sleep(5)
+    rospy.sleep(1)
     listen()
 
 if __name__ == '__main__':
