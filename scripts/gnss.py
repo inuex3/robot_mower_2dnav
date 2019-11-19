@@ -32,18 +32,18 @@ def callback(Odom):
     start.header.frame_id = "map"
     gnss_odom.header.frame_id = "map"
     e = tf.transformations.euler_from_quaternion((start.pose.pose.orientation.x, start.pose.pose.orientation.y, start.pose.pose.orientation.z, start.pose.pose.orientation.w))
-    heading = e[2]
+    heading = e[2] - math.pi/2
     gnss_odom.pose.pose.position.x = (Odom.pose.pose.position.x - start.pose.pose.position.x)
     gnss_odom.pose.pose.position.y = (Odom.pose.pose.position.y - start.pose.pose.position.y)
     gnss_odom.pose.pose.position.z = 0.0
     robot_position.header = Odom.header
-    robot_position.header.frame_id = "map"
+    robot_position.header.frame_id = "base_link"
     robot_position.pose.pose = gnss_odom.pose.pose
     robot_position.pose.covariance = [0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001]
     if 0.01 < abs(gnss_odom.pose.pose.position.x) < 1000:
         pub.publish(gnss_odom)
-        #if goal.header.seq < 1:
-        #    position_pub.publish(robot_position)
+        if goal.header.seq < 1:
+            position_pub.publish(robot_position)
 
 def listen():
     start_sub = rospy.Subscriber('/set_start', Odometry, callback_start)

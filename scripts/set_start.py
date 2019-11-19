@@ -30,7 +30,7 @@ def print_obstacle_and_landmark_position(x, y, heading):
         #pub.publish(point)
         point.point.x = point_position[0][0] * math.cos(heading) - point_position[0][1]*math.sin(heading) + x
         point.point.y = point_position[0][0] * math.cos(heading) + point_position[0][1]*math.sin(heading) + y
-        #print(point)
+        print(point)
         rospy.sleep(0.1)
 
 def publish_goal(heading):
@@ -43,10 +43,8 @@ def publish_goal(heading):
         tf_br.sendTransform((p[0], p[1], 0), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "point" + str(i), "odom")
         tf_listener.waitForTransform("/odom", "/" + "point" + str(i), rospy.Time(0), rospy.Duration(0.1))
         point_position = tf_listener.lookupTransform("/map", "/" + "point" + str(i), rospy.Time(0))
-        #point.point.x = p[0] * math.cos(heading) - p[1]*math.sin(heading)
-        #point.point.y = p[0] * math.cos(heading) + p[1]*math.sin(heading)
-        point.point.x = point_position[0][0] * math.cos(heading) - point_position[0][1]*math.sin(heading)
-        point.point.y = point_position[0][0] * math.sin(heading) + point_position[0][1]*math.cos(heading)
+        point.point.x = point_position[0][0]# * math.cos(heading) - point_position[0][1]*math.sin(heading)
+        point.point.y = point_position[0][1]# * math.sin(heading) + point_position[0][1]*math.cos(heading)
         point.point.z = 0.0
         pub.publish(point)
         rospy.sleep(0.1)
@@ -60,7 +58,7 @@ def callback_odom(Odom):
     start.header.frame_id = "map"
     e = tf.transformations.euler_from_quaternion((start.pose.pose.orientation.x, start.pose.pose.orientation.y, start.pose.pose.orientation.z, start.pose.pose.orientation.w))
     heading = math.atan(e[2]) - math.pi/2
-    reset_pose(0.0, 0.0, 0.0, 0, 0, heading)
+    #reset_pose(0.0, 0.0, 0.0, 0, 0, heading)
     posi.header.stamp = rospy.Time.now()
     start_pub.publish(start)
     subscriber.unregister()
