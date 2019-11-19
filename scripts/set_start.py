@@ -62,13 +62,6 @@ def callback_odom(Odom):
     heading = math.atan(e[2]) - math.pi/2
     reset_pose(0.0, 0.0, 0.0, 0, 0, heading)
     posi.header.stamp = rospy.Time.now()
-    #posi.pose.pose.position.x = 0.0
-    #posi.pose.pose.position.y = 0.0
-    #posi.header.frame_id = "base_link"
-    #posi.pose.pose.orientation = start.pose.pose.orientation
-    #posi.pose.covariance = [0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999]
-    #time_before = rospy.get_time()
-    #pose_pub.publish(posi)
     start_pub.publish(start)
     subscriber.unregister()
     rospy.sleep(1)
@@ -78,6 +71,7 @@ def callback_odom(Odom):
     rospy.signal_shutdown('Quit')
 
 subscriber = rospy.Subscriber('/gnss_odom', Odometry, callback_odom)
+
 def listen():
     rospy.spin()
 
