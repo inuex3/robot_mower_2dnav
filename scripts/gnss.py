@@ -39,7 +39,7 @@ def callback(Odom):
     robot_position.header = Odom.header
     robot_position.header.frame_id = "base_link"
     robot_position.pose.pose = gnss_odom.pose.pose
-    robot_position.pose.covariance = [0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001]
+    robot_position.pose.covariance = [0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999]
     if 0.01 < abs(gnss_odom.pose.pose.position.x) < 1000:
         pub.publish(gnss_odom)
         if goal.header.seq < 1:
