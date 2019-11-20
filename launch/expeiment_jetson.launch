@@ -1,7 +1,7 @@
 <launch>
   <arg name="wait_for_transform" default="0.2"/> <!-- for data delay-->
   <arg name="localization"   default="false"/>  <!-- Common types: compressed, theora (see "rosrun image_transport list_transports") -->
-  <arg name="database_path"           default="/mnt/ssd/rtabmap.db"/>
+  <arg name="database_path"           default="/mnt/dataset/rtabmap.db"/>
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera1_tf"
       args="0.25 0 0.89 -1.570796327 0.0 -1.570796327 base_link camera1_color_optical_frame 1000" />
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera2_tf"
@@ -115,6 +115,5 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
  
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find robot_mower_2dnav)/cfg/rviz.rviz"/>
-  <include file="$(find microstrain_mips)/launch/microstrain.launch" />
-  <include file="$(find robot_mower_2dnav)/launch/two.launch" />
+
 </launch>

@@ -205,7 +205,6 @@ class Publishsers():
                             marker_data.markers[i].color.r, marker_data.markers[i].color.g, marker_data.markers[i].color.b, marker_data.markers[i].color.a = 0, 1, 0, 1
                             marker_data.markers[i].scale.x, marker_data.markers[i].scale.y, marker_data.markers[i].scale.z = 0.2, 0.2, 1
                             marker_data.markers[i].type = 3
-                            print("b")
                             i = i + 1
                 except Exception as e:
                     pass
