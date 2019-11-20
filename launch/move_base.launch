@@ -9,6 +9,7 @@
  -->
 <launch>
   <remap from="odom" to="/odometry/filtered"/>
+  <remap from="/cmd_vel" to="roboteq_driver/cmd"/>
   <arg name="cutting_spacing" default="0.4" />
   <arg name="map_file" default="$(find robot_mower_2dnav)/cfg/map.yaml"/>
         <!--  ************** Navigation ***************  -->

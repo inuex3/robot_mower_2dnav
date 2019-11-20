@@ -184,7 +184,7 @@ class Publishsers():
                         distance_x = np.nanmedian(detected_area)/1000
                         distance_x = distance_x
                         distance_y = - distance_x * tan_angle_x
-                        if 1.0 < distance_x < 6.0:
+                        if 1.0 < distance_x < 4.0:
                             now = rospy.Time.now()
                             obstacle_msg.obstacles.append(ObstacleMsg())
                             marker_data.markers.append(Marker())

@@ -24,12 +24,11 @@ def print_obstacle_and_landmark_position(x, y, heading):
     point.header.frame_id = "map"
     for i, p in enumerate(obstacle_position): 
         point.header.stamp = rospy.Time.now()
-        tf_br.sendTransform((p[0], p[1], 0), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "obstacle_position" + str(i), "odom")
+        tf_br.sendTransform((p[0], p[1], 0), tf.transformations.quaternion_from_euler(0, 0, 3.14), rospy.Time.now(), "obstacle_position" + str(i), "odom")
         tf_listener.waitForTransform("/odom", "/" + "obstacle_position" + str(i), rospy.Time(0), rospy.Duration(0.1))
         point_position = tf_listener.lookupTransform("/map", "/" + "obstacle_position" + str(i), rospy.Time(0))
-        #pub.publish(point)
-        point.point.x = point_position[0][0] * math.cos(heading) - point_position[0][1]*math.sin(heading) + x
-        point.point.y = point_position[0][0] * math.cos(heading) + point_position[0][1]*math.sin(heading) + y
+        point.point.x = point_position[0][0] + x
+        point.point.y = point_position[0][1] + y
         print(point)
         rospy.sleep(0.1)
 
@@ -63,6 +62,7 @@ def callback_odom(Odom):
     start_pub.publish(start)
     subscriber.unregister()
     rospy.sleep(1)
+    raw_input("\nPress Enter to publish point...")
     print_obstacle_and_landmark_position(start.pose.pose.position.x, start.pose.pose.position.y, heading)
     raw_input("\nPress Enter to publish point...")
     publish_goal(heading)
