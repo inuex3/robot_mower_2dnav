@@ -44,11 +44,11 @@ def publish_goal(x, y, heading):
     heading = heading - math.pi/2
     for i, p in enumerate(goal_point): 
         point.header.stamp = rospy.Time.now()
-        tf_br.sendTransform((p[0], p[1], 0), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "point" + str(i), "odom")
+        tf_br.sendTransform((p[0]-x, p[1]-y, 0), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "point" + str(i), "odom")
         tf_listener.waitForTransform("/odom", "/" + "point" + str(i), rospy.Time(0), rospy.Duration(0.1))
         point_position = tf_listener.lookupTransform("/map", "/" + "point" + str(i), rospy.Time(0))
-        point.point.x = p[0] - x
-        point.point.y = p[1] - y
+        point.point.x = p[0]-x
+        point.point.y = p[1]-y
         point.point.z = 0.0
         pub.publish(point)
         rospy.sleep(0.1)
@@ -73,7 +73,7 @@ def callback_odom(Odom):
     publish_goal(start.pose.pose.position.x, start.pose.pose.position.y, heading)
     rospy.signal_shutdown('Quit')
 
-subscriber = rospy.Subscriber('/gnss_odom', Odometry, callback_odom)
+subscriber = rospy.Subscriber('/utm', Odometry, callback_odom)
 
 def listen():
     rospy.spin()
@@ -84,5 +84,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 

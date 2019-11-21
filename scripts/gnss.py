@@ -47,7 +47,7 @@ def callback(Odom):
 
 def listen():
     start_sub = rospy.Subscriber('/set_start', Odometry, callback_start)
-    odom_sub = rospy.Subscriber('/gnss_odom', Odometry, callback)
+    odom_sub = rospy.Subscriber('/utm', Odometry, callback)
     goal_sub = rospy.Subscriber('/move_base/current_goal', PoseStamped, callback_goal)
     rospy.spin()
 

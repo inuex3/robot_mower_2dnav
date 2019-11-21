@@ -86,6 +86,7 @@ class Publishsers():
             pass
 
     def send_msg(self):
+        self.obstacle_msg.obstacles = [i for i in self.obstacle_msg.obstacles if not len(i.polygon.points) == 0]
         self.publisher.publish(self.obstacle_msg)
         self.marker_publisher.publish(self.marker_data)
     
