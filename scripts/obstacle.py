@@ -28,7 +28,7 @@ class Publishsers():
         self.gnss_publisher = rospy.Publisher("/rtabmap/global_pose", PoseWithCovarianceStamped, queue_size = 1)
         self.object_list = ["landmark", "obstacle"]
         self.obstacle_list = ["obstacle", "landmark"]
-        self.landmark_list = ["landmark"]
+        self.landmark_list = [""]
         self.landmark_gnss = rospy.get_param('~landmark_gnss')
         self.tf_br = tf.TransformBroadcaster()
         self.tf_listener = tf.TransformListener()
@@ -86,6 +86,7 @@ class Publishsers():
             pass
 
     def send_msg(self):
+        self.obstacle_msg.obstacles = [i for i in self.obstacle_msg.obstacles if not len(i.polygon.points) == 0]
         self.publisher.publish(self.obstacle_msg)
         self.marker_publisher.publish(self.marker_data)
     
@@ -205,7 +206,6 @@ class Publishsers():
                             marker_data.markers[i].color.r, marker_data.markers[i].color.g, marker_data.markers[i].color.b, marker_data.markers[i].color.a = 0, 1, 0, 1
                             marker_data.markers[i].scale.x, marker_data.markers[i].scale.y, marker_data.markers[i].scale.z = 0.2, 0.2, 1
                             marker_data.markers[i].type = 3
-                            print("b")
                             i = i + 1
                 except Exception as e:
                     pass
@@ -269,7 +269,7 @@ class Publishsers():
                             #updated_marker_data.markers.append(prev_marker)    
                             Updated = True
                     except Exception as e:
-                        pass
+                        print(e)
                 if not Updated:     
                     if not len(detected_obstacle.polygon.points) == 0:
                         self.obstacle_msg.obstacles.append(detected_obstacle)   

@@ -39,7 +39,7 @@ def callback(Odom):
     robot_position.header = Odom.header
     robot_position.header.frame_id = "base_link"
     robot_position.pose.pose = gnss_odom.pose.pose
-    robot_position.pose.covariance = [0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001]
+    robot_position.pose.covariance = [0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999]
     if 0.01 < abs(gnss_odom.pose.pose.position.x) < 1000:
         pub.publish(gnss_odom)
         if goal.header.seq < 1:
@@ -47,7 +47,7 @@ def callback(Odom):
 
 def listen():
     start_sub = rospy.Subscriber('/set_start', Odometry, callback_start)
-    odom_sub = rospy.Subscriber('/gnss_odom', Odometry, callback)
+    odom_sub = rospy.Subscriber('/utm', Odometry, callback)
     goal_sub = rospy.Subscriber('/move_base/current_goal', PoseStamped, callback_goal)
     rospy.spin()
 

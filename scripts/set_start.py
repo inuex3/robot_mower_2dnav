@@ -29,21 +29,26 @@ def print_obstacle_and_landmark_position(x, y, heading):
         point_position = tf_listener.lookupTransform("/map", "/" + "obstacle_position" + str(i), rospy.Time(0))
         point.point.x = point_position[0][0] + x
         point.point.y = point_position[0][1] + y
+        print(p[0])
+        print(p[1])
+        print(point_position[0][0])
+        print(point_position[0][1])
         print(point)
+        print("OKO")
         rospy.sleep(0.1)
 
-def publish_goal(heading):
+def publish_goal(x, y, heading):
     rospy.sleep(0.1)
     point.header.frame_id = "map"
     goal_point = rospy.get_param('/obstacle/goal_point')
     heading = heading - math.pi/2
     for i, p in enumerate(goal_point): 
         point.header.stamp = rospy.Time.now()
-        tf_br.sendTransform((p[0], p[1], 0), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "point" + str(i), "odom")
-        tf_listener.waitForTransform("/odom", "/" + "point" + str(i), rospy.Time(0), rospy.Duration(0.1))
-        point_position = tf_listener.lookupTransform("/map", "/" + "point" + str(i), rospy.Time(0))
-        point.point.x = point_position[0][0]# * math.cos(heading) - point_position[0][1]*math.sin(heading)
-        point.point.y = point_position[0][1]# * math.sin(heading) + point_position[0][1]*math.cos(heading)
+        #tf_br.sendTransform((p[0]-x, p[1]-y, 0), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "point" + str(i), "odom")
+        #tf_listener.waitForTransform("/odom", "/" + "point" + str(i), rospy.Time(0), rospy.Duration(0.1))
+        #point_position = tf_listener.lookupTransform("/map", "/" + "point" + str(i), rospy.Time(0))
+        point.point.x = p[0]-x
+        point.point.y = p[1]-y
         point.point.z = 0.0
         pub.publish(point)
         rospy.sleep(0.1)
@@ -57,18 +62,19 @@ def callback_odom(Odom):
     start.header.frame_id = "map"
     e = tf.transformations.euler_from_quaternion((start.pose.pose.orientation.x, start.pose.pose.orientation.y, start.pose.pose.orientation.z, start.pose.pose.orientation.w))
     heading = math.atan(e[2]) - math.pi/2
-    #reset_pose(0.0, 0.0, 0.0, 0, 0, heading)
+    reset_pose(0.0, 0.0, 0.0, 0, 0, heading)
     posi.header.stamp = rospy.Time.now()
     start_pub.publish(start)
     subscriber.unregister()
     rospy.sleep(1)
     raw_input("\nPress Enter to publish point...")
-    print_obstacle_and_landmark_position(start.pose.pose.position.x, start.pose.pose.position.y, heading)
+    #print_obstacle_and_landmark_position(start.pose.pose.position.x, start.pose.pose.position.y, heading)
+    #print_obstacle_and_landmark_position(367960.3, 3955732.28737, 0)
     raw_input("\nPress Enter to publish point...")
-    publish_goal(heading)
+    publish_goal(start.pose.pose.position.x, start.pose.pose.position.y, heading)
     rospy.signal_shutdown('Quit')
 
-subscriber = rospy.Subscriber('/gnss_odom', Odometry, callback_odom)
+subscriber = rospy.Subscriber('/utm', Odometry, callback_odom)
 
 def listen():
     rospy.spin()
@@ -79,5 +85,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
