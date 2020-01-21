@@ -5,7 +5,7 @@
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera1_tf"
       args="0.25 0 0.89 -1.570796327 0.0 -1.570796327 base_link camera1_color_optical_frame 1000" />
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera2_tf"
-      args="-0.25 0.0 0.92 1.570796327 0.0 -1.570796327  base_link camera2_color_optical_frame 1000" />
+      args="-0.25 -0.5 0.92 1.570796327 0.0 -1.570796327  base_link camera2_color_optical_frame 1000" />
   <node name="republish1" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera1/color/image_raw raw out:=/camera1/color/image_raw" />
   <node name="republish" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera2/color/image_raw raw out:=/camera2/color/image_raw" />
   <!--<node pkg="tf" type="static_transform_publisher" name="base_to_imu_tf" args="0.0 0.0 0.0 -1.570796327 0.0 0.0  base_link gx5_link 1000" />-->
@@ -116,5 +116,4 @@
  
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find robot_mower_2dnav)/cfg/rviz.rviz"/>
   <include file="$(find robot_mower_2dnav)/launch/two.launch" />
-  <include file="$(find microstrain_mips)/launch/microstrain.launch" />
 </launch>

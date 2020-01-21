@@ -34,7 +34,7 @@ TebLocalPlannerROS:
     
  # Obstacles
     
- min_obstacle_dist: 0.6 # This value must also include our robot radius, since footprint_model is set to "point".
+ min_obstacle_dist: 0.75 # This value must also include our robot radius, since footprint_model is set to "point".
  include_costmap_obstacles: True
  costmap_obstacles_behind_robot_dist: 1.5
  obstacle_poses_affected: 30
@@ -81,4 +81,4 @@ TebLocalPlannerROS:
  visualize_hc_graph: False
 
  #Viapoint
- global_plan_viapoint_sep: 0.5
+ global_plan_viapoint_sep: 1.0

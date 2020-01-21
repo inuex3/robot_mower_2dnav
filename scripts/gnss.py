@@ -11,7 +11,7 @@ from sensor_msgs.msg import NavSatFix
 import message_filters
 
 start = Odometry()
-goal = PoseStamped()
+goal = Int32()
 pub = rospy.Publisher('/gnss_odom_from_start', Odometry, queue_size=1)
 position_pub = rospy.Publisher('/rtabmap/global_pose', PoseWithCovarianceStamped, queue_size=1)
 
@@ -42,13 +42,13 @@ def callback(Odom):
     robot_position.pose.covariance = [0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, 9999]
     if 0.01 < abs(gnss_odom.pose.pose.position.x) < 1000:
         pub.publish(gnss_odom)
-        if goal.header.seq < 1:
+        if goal.data < 1:
             position_pub.publish(robot_position)
 
 def listen():
     start_sub = rospy.Subscriber('/set_start', Odometry, callback_start)
     odom_sub = rospy.Subscriber('/utm', Odometry, callback)
-    goal_sub = rospy.Subscriber('/move_base/current_goal', PoseStamped, callback_goal)
+    goal_sub = rospy.Subscriber('/goal', Int32, callback_goal)
     rospy.spin()
 
 def main():

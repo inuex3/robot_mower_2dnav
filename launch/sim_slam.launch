@@ -1,8 +1,8 @@
 <launch>
-  <node pkg="rosbag" type="play" name="rosbagplay" args="/mnt/dataset/tanashi/OKouhuku2.bag --clock -d 5 --start 22" respawn="false"/>
+  <node pkg="rosbag" type="play" name="rosbagplay" args="/mnt/ssd/rosbag/OKouhuku2.bag --clock -d 5 --start 0" respawn="false"/>
   <param name="use_sim_time" value="true"/> <!-- odometry -->
   <arg name="compressed"              default="false"/>         <!-- If you want to subscribe to compressed image topics -->
-  <arg name="database_path"           default="/home/ubuntu/rtabmap.db"/>
+  <arg name="database_path"           default="/home/robotmower/rtabmap.db"/>
   <arg name="rgb_image_transport"     default="compressed"/>    <!-- Common types: compressed, theora (see "rosrun image_transport list_transports") -->
   <arg name="depth_image_transport"   default="compressedDepth"/>  <!-- Common types: compressed, theora (see "rosrun image_transport list_transports") -->
   <arg name="localization"   default="false"/>  <!-- Common types: compressed, theora (see "rosrun image_transport list_transports") -->
@@ -48,7 +48,7 @@
       <remap from="odom"            to="/vo"/>
        
       <param name="subscribe_rgbd"           type="bool"   value="true"/>
-      <param name="Vis/MaxDepth" type="string" value="10.0"/> <!-- odometry -->
+      <param name="Vis/MaxDepth" type="string" value="6.0"/> <!-- odometry -->
       <param name="Vis/MinDepth" type="string" value="0.2"/> <!-- odometry -->
       <param name="approx_sync"          value="true"/>
       <param name="queue_size"          value="10"/>
@@ -65,7 +65,7 @@
     <!-- Visual SLAM (robot side) -->
     <!-- args: "delete_db_on_start" and "udebug"-->
     <node name="rtabmap" pkg="rtabmap_ros" type="rtabmap" output="screen"  args="--delete_db_on_start">
-      <remap from="odom"            to="/odometry/filtered"/>
+      <remap from="odom"            to="/vo"/>
       <param name="subscribe_depth"  type="bool"   value="false"/>
       <param name="subscribe_rgbd"   type="bool"   value="true"/>
       <param name="rgbd_cameras"     type="int"    value="2"/>
@@ -99,16 +99,9 @@
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
     <rosparam command="load" file="$(find robot_mower_2dnav)/cfg/ekf_template.yaml" />
   </node>
-  <node name="gnss" pkg="robot_mower_2dnav" type="global_pose.py" respawn="false" output="screen"/>  
-  <node name="imu_republish" pkg="robot_mower_2dnav" type="imu_republish.py" respawn="false" output="screen"/>  
+  <node name="gnss" pkg="robot_mower_2dnav" type="global_pose.py" respawn="false" output="screen"/> 
+  <node name="imu" pkg="robot_mower_2dnav" type="imu_republish.py" respawn="false" output="screen"/>  
   <node name="visualize_path" pkg="robot_mower_2dnav" type="visualize_odometry_as_path.py" respawn="false" output="screen"/>  
-    <node pkg="imu_filter_madgwick" type="imu_filter_node" name="ImuFilter">
-        <param name="use_mag" type="bool" value="false" />
-        <param name="publish_tf" type="bool" value="true" />
-        <param name="world_frame" type="string" value="enu" />
-        <remap from="/imu/data_raw" to="/imu/data"/>
-        <remap from="/imu/data" to="/imu/data/filtered"/>
-    </node>
   <!-- Visualization RVIZ -->
   <arg name="model" default="$(find sim_ajk)/sim_ajk.urdf"/>
   <arg name="gui" default="True"/>
@@ -116,7 +109,7 @@
  
   <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>
   <param name="use_gui" value="$(arg gui)"/>
- 
+
  
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
