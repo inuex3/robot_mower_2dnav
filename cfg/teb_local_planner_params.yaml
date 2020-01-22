@@ -9,7 +9,7 @@ TebLocalPlannerROS:
  dt_hysteresis: 0.1
  global_plan_overwrite_orientation: False
  allow_init_with_backwards_motion: True
- max_global_plan_lookahead_dist: 6.0
+ max_global_plan_lookahead_dist: 3.0
  feasibility_check_no_poses: 0
     
  # Robot
@@ -24,12 +24,11 @@ TebLocalPlannerROS:
 
  footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
    type: "point"
-   radius: 0.2 # for type "circular"
 
  # GoalTolerance
     
  xy_goal_tolerance: 0.3
- yaw_goal_tolerance: 1.57
+ yaw_goal_tolerance: 3.1415
  free_goal_vel: True
     
  # Obstacles

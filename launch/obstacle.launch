@@ -1,6 +1,5 @@
 <launch>
-  <include file="$(find darknet_ros)/launch/test.launch" />
-  <node name="unify_two" pkg="robot_mower_2dnav" type="unify_two_image.py" respawn="false" output="screen"/>
+
   <arg name="config_file" default="$(find robot_mower_2dnav)/cfg/landmark_config.yaml"/> 
   <node name="obstacle" pkg="robot_mower_2dnav" type="obstacle.py" respawn="false" output="screen">
     <rosparam file="$(arg config_file)" command="load"/>

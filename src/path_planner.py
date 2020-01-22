@@ -410,7 +410,7 @@ class PathPlannerNode(object):
             else:
                 self.current_distance = self.distance(self.previous_destination, destination)
             # Set the heading
-            quat = qfe(0, 0,-current_waypoint[2])
+            quat = qfe(0, 0, -1.282 - 1.57)
             destination.target_pose.pose.orientation.x = quat[0]
             destination.target_pose.pose.orientation.y = quat[1]
             destination.target_pose.pose.orientation.z = quat[2]
