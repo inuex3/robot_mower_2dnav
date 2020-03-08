@@ -20,7 +20,7 @@ def callback_imu(Imu_data):
     new_imu.angular_velocity.z = - Imu_data.angular_velocity.z
     new_imu.linear_acceleration = Imu_data.linear_acceleration
     new_imu.orientation_covariance[0], new_imu.orientation_covariance[4], new_imu.orientation_covariance[8] = 0.001, 0.001, 0.000001
-    new_imu.angular_velocity_covariance[0], new_imu.angular_velocity_covariance[4], new_imu.angular_velocity_covariance[8] = 0.001, 0.001,  0.000001
+    new_imu.angular_velocity_covariance[0], new_imu.angular_velocity_covariance[4], new_imu.angular_velocity_covariance[8] = 0.001, 0.001,  0.000000001
     new_imu.linear_acceleration_covariance[0], new_imu.linear_acceleration_covariance[4], new_imu.linear_acceleration_covariance[8] = 0.001, 0.001, 0.001
     new_imu.linear_acceleration = Imu_data.linear_acceleration
     pub.publish(new_imu)

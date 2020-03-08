@@ -33,6 +33,7 @@ if __name__ == '__main__':
     goal_pub = rospy.Publisher('/goal', Int32, queue_size=1)
     client = actionlib.SimpleActionClient('move_base', MoveBaseAction) 
     client.wait_for_server()
+    rospy.sleep(1)
     listener.waitForTransform("map", "base_link", rospy.Time(), rospy.Duration(4.0))
     rospy.sleep(1)
     global start

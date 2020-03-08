@@ -140,13 +140,14 @@ class Publishsers():
                 try:
                     tan_angle_x = camera_param[0][0]*((bbox.xmin+bbox.xmax)/2) + camera_param[0][2]*1 
                     angle_x = math.atan(tan_angle_x)
-                    if abs(math.degrees(angle_x)) < 32:
+                    if abs(math.degrees(angle_x)) < 30:
                         detected_area = DepthImage[bbox.ymin:bbox.ymax, bbox.xmin:bbox.xmax]
-                        detected_area = np.where(detected_area > 8.0, detected_area, np.nan)
+                        #detected_area = np.where(detected_area > 8.0, detected_area, np.nan)
+                        distance_x = distance_x + 0.1
                         distance_x = np.nanmedian(detected_area)/1000
                         distance_y = - distance_x * tan_angle_x
                         distance_e = (distance_x * distance_x + distance_y * distance_y)**0.5
-                        if 1.0 < distance_x <4.5:
+                        if 1.0 < distance_x <3.5:
                             now = rospy.Time.now()
                             #distance_x = distance_x + 0.1 #self.landmark_msg.detections.append(AprilTagDetection())
                             landmark_name = "/" + bbox.Class + bboxes.header.frame_id + str(now)
@@ -171,15 +172,15 @@ class Publishsers():
                                 dist = np.append(dist, dist_x * dist_x + dist_y * dist_y)
                                 position = np.append(position,  np.array([landmark[0] - self.start.pose.pose.position.x, landmark[1] - self.start.pose.pose.position.y]), axis=0)
                             min_index = dist.argmin()
-                            print(dist)
-                            print(position)
                             gnss_x = position[2 * min_index]#self.landmark_gnss[0][0] - self.start.pose.pose.position.x
                             gnss_y = position[2 * min_index + 1]#self.landmark_gnss[0][1] - self.start.pose.pose.position.y
+                            print(gnss_x)
+                            print(gnss_y)
                             self.position.pose.pose.position.x = gnss_x - gnss_position[0][0]
                             self.position.pose.pose.position.y = gnss_y - gnss_position[0][1]
                             self.position.pose.pose.position.z = 0
                             self.position.pose.pose.orientation.x, self.position.pose.pose.orientation.y, self.position.pose.pose.orientation.z, self.position.pose.pose.orientation.w = base_link_position[1][0], base_link_position[1][1], base_link_position[1][2], base_link_position[1][3]
-                            self.position.pose.covariance = [0.01 * distance_x, 0, 0, 0, 0, 0, 0, 0.02 * distance_x, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0.01, 0, 0,0, 0, 0, 0, 0.2]
+                            self.position.pose.covariance = [0.01 * distance_x, 0, 0, 0, 0, 0, 0, 0.02 * distance_x, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0.01, 0, 0,0, 0, 0, 0, 0.1]
                             self.marker_data.markers.append(Marker())
                             self.marker_data.markers[0].header.stamp, self.marker_data.markers[0].header.frame_id = bboxes.header.stamp, "map"     
                             self.marker_data.markers[0].ns, self.marker_data.markers[0].id = bbox.Class, 0
@@ -203,7 +204,7 @@ class Publishsers():
                                 self.marker_publisher.publish(self.marker_data)
                             j = j + 1
                 except Exception as e:
-                    print(e)
+                    pass
         return obstacle_msg, marker_data
     """
     def update_obstacles(self, prev_obstacle_msg, detected_obstacle_msg, prev_marker_msg, marker_msg):
@@ -281,8 +282,8 @@ class Subscribe_publishers():
         self.odom_subscriber = message_filters.Subscriber('/odometry/filtered', Odometry)
         self.camera1_param_subscriber = rospy.Subscriber("/camera1/color/camera_info", CameraInfo, self.camera1_parameter_callback)
         self.camera2_param_subscriber = rospy.Subscriber("/camera2/color/camera_info", CameraInfo, self.camera2_parameter_callback)
-        #self.start_subscriber = rospy.Subscriber('/set_start', Odometry, self.gnss_start_callback)
-        self.start_subscriber = rospy.Subscriber('/gnss_odom', Odometry, self.gnss_start_callback)
+        self.start_subscriber = rospy.Subscriber('/set_start', Odometry, self.gnss_start_callback)
+        #self.start_subscriber = rospy.Subscriber('/gnss_odom', Odometry, self.gnss_start_callback)
 
         # messageの型を作成
         self.pub = pub
@@ -311,7 +312,7 @@ class Subscribe_publishers():
         print ("Camera parameter:")
         print (camera_parameter_org)
         self.camera2_param_subscriber.unregister() 
-    """
+
     def gnss_start_callback(self, Odom):
         start = Odom
         start.header.frame_id = "base_link"
@@ -333,7 +334,7 @@ class Subscribe_publishers():
             print ("start_x:" + str(start.pose.pose.position.x))
             print ("start_y:" + str(start.pose.pose.position.y))
             #self.start_subscriber.unregister() 
-
+    """
     def bounding_boxes_callback(self, depth1_image, depth2_image, detection_data, odom):
         self.depth1_image, self.depth2_image, self.detection_data, self.odom = depth1_image, depth2_image, detection_data, odom
 

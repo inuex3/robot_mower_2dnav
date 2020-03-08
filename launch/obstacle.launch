@@ -1,10 +1,8 @@
 <launch>
-
-  <arg name="config_file" default="$(find robot_mower_2dnav)/cfg/landmark_config.yaml"/> 
+  <arg name="config_file" default="$(find robot_mower_2dnav)/cfg/landmark_config_experiment.yaml"/> 
+  <node name="unify_two_image" pkg="robot_mower_2dnav" type="unify_two_image.py" respawn="false" output="screen"/>
   <node name="obstacle" pkg="robot_mower_2dnav" type="obstacle.py" respawn="false" output="screen">
     <rosparam file="$(arg config_file)" command="load"/>
   </node>
-  <!--<node name="publish_point" pkg="robot_mower_2dnav" type="goal_point_pub.py" respawn="false" output="screen">
-    <rosparam file="$(arg config_file)" command="load"/>
-  </node>-->
+  <include file="$(find darknet_ros)/launch/darknet_ros.launch"/>
 </launch>

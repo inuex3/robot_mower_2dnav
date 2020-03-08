@@ -5,7 +5,7 @@
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera1_tf"
       args="0.25 0 0.89 -1.570796327 0.0 -1.570796327 base_link camera1_color_optical_frame 1000" />
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera2_tf"
-      args="-0.25 -0.5 0.92 1.570796327 0.0 -1.570796327  base_link camera2_color_optical_frame 1000" />
+      args="-0.25 -0.0 0.92 1.570796327 0.0 -1.570796327  base_link camera2_color_optical_frame 1000" />
   <node name="republish1" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera1/color/image_raw raw out:=/camera1/color/image_raw" />
   <node name="republish" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera2/color/image_raw raw out:=/camera2/color/image_raw" />
   <!--<node pkg="tf" type="static_transform_publisher" name="base_to_imu_tf" args="0.0 0.0 0.0 -1.570796327 0.0 0.0  base_link gx5_link 1000" />-->
@@ -92,8 +92,8 @@
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
     <rosparam command="load" file="$(find robot_mower_2dnav)/cfg/ekf_template.yaml" />
   </node>
-  <node name="gnss" pkg="robot_mower_2dnav" type="gnss.py" respawn="false" output="screen"/>  
-  <node name="imu_republish" pkg="robot_mower_2dnav" type="imu_republish.py" respawn="false" output="screen"/>  
+  <node name="gnss" pkg="robot_mower_2dnav" type="gnss.py" respawn="false" output="screen"/>
+  <node name="imu_republish" pkg="robot_mower_2dnav" type="imu_republish.py" respawn="false" output="screen"/>      
   <node name="visualize_path" pkg="robot_mower_2dnav" type="visualize_odometry_as_path.py" respawn="false" output="screen"/>  
     <node pkg="imu_filter_madgwick" type="imu_filter_node" name="ImuFilter">
         <param name="use_mag" type="bool" value="false" />
