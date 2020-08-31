@@ -7,6 +7,9 @@ au-automow https://github.com/Auburn-Automow/au-automow
 heatmap https://github.com/eybee/heatmap
 
 # Way Point generator usage
+clone mowing planner first
+https://github.com/inuex3/mowing_planner
+after catkin_make
 run  
 rosrun robot_mower_2dnav heatmap_client  
 and  
