@@ -11,6 +11,7 @@ clone mowing planner first
 https://github.com/inuex3/mowing_planner
 after catkin_make
 run  
+roslaunch robot_mower_2dnav planning_test.launch
 rosrun robot_mower_2dnav heatmap_client  
 and  
 rosrun robot_mower_2dnav path_planner.py  
