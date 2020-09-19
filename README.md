@@ -8,8 +8,8 @@ heatmap https://github.com/eybee/heatmap
 
 # Way Point generator usage
 clone mowing planner first
-https://github.com/inuex3/mowing_planner
-after catkin_make
+https://github.com/inuex3/mowing_planner.
+After catkin_make,
 run  
 roslaunch robot_mower_2dnav planning_test.launch
 rosrun robot_mower_2dnav heatmap_client  
