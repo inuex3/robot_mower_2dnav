@@ -1,5 +1,4 @@
 <launch>
-  <node pkg="rosbag" type="play" name="rosbagplay" args=" --clock -d 5 --start 0" respawn="false"/>
   <param name="use_sim_time" value="true"/>
   <arg name="compressed"              default="false"/>         <!-- If you want to subscribe to compressed image topics -->
   <arg name="database_path"           default="~/.ros/rtabmap.db"/>
@@ -14,7 +13,6 @@
       args="0.25 0 0.89 -1.570796327 0.0 -1.570796327 base_link camera1_color_optical_frame 100" />
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera2_tf"
       args="-0.25 0.0 0.92 1.570796327 0.0 -1.570796327  base_link camera2_color_optical_frame 100" />
-  <!--<node pkg="tf" type="static_transform_publisher" name="base_to_imu_tf" args="0.0 0.0 0.0 -1.570796327 0.0 0.0  base_link gx5_link 100" />-->
   <node pkg="tf" type="static_transform_publisher" name="base_to_imu_tf" args="0.0 0.0 0.0 0.0 0.0 0.0  base_link gx5_link 100" />
   <node pkg="tf" type="static_transform_publisher" name="odom_to_gnss_odom" args="0.0 0.0 0.0 0.0 0.0 0.0  map gnss_odom 100" />
 
@@ -102,12 +100,7 @@
   <node name="imu" pkg="robot_mower_2dnav" type="imu_republish.py" respawn="false" output="screen"/>  
   <node name="visualize_path" pkg="robot_mower_2dnav" type="visualize_odometry_as_path.py" respawn="false" output="screen"/>  
   <!-- Visualization RVIZ -->
-  <arg name="model" default="$(find sim_ajk)/sim_ajk.urdf"/>
-  <arg name="gui" default="True"/>
-  <arg name="rvizconfig" default="$(find sim_ajk)/urdf.rviz"/>
  
-  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>
-  <param name="use_gui" value="$(arg gui)"/>
 
  
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />

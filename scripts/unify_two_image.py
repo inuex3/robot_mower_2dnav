@@ -18,19 +18,18 @@ class Publishsers():
         self.unified_image = Image()        
 
     def make_msg(self, color1_image, color2_image):
-	#opencvに変換
-	bridge = CvBridge()
-   	try:
-   	    image1 = bridge.imgmsg_to_cv2(color1_image, desired_encoding="passthrough")
-   	    image2 = bridge.imgmsg_to_cv2(color2_image, desired_encoding="passthrough")
+        bridge = CvBridge()
+        try:
+            image1 = bridge.imgmsg_to_cv2(color1_image, desired_encoding="passthrough")
+            image2 = bridge.imgmsg_to_cv2(color2_image, desired_encoding="passthrough")
             unified = cv2.vconcat([image1, image2])
         except CvBridgeError as e:
             print(e)
-	self.unified_image = bridge.cv2_to_imgmsg(unified, encoding='passthrough')
-	#Time stampとframe id
-	self.unified_image.header.stamp = rospy.Time.now()
-	self.unified_image.encoding = "rgb8"
-	self.unified_image.header.frame_id = "camera_color_optical_frame"
+        self.unified_image = bridge.cv2_to_imgmsg(unified, encoding='passthrough')
+        #Time stampとframe id
+        self.unified_image.header.stamp = rospy.Time.now()
+        self.unified_image.encoding = "rgb8"
+        self.unified_image.header.frame_id = "camera_color_optical_frame"
 
     def send_msg(self):
         # messageを送信
@@ -44,7 +43,7 @@ class Subscribe_publishers():
         ts = message_filters.ApproximateTimeSynchronizer([self.color1_subscriber, self.color2_subscriber], 10, 0.05)
         ts.registerCallback(self.callback)
         # messageの型を作成
-	self.pub = pub
+        self.pub = pub
 
     def callback(self, color1_image, color2_image):
         self.pub.make_msg(color1_image, color2_image)
