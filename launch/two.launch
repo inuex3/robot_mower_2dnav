@@ -1,8 +1,8 @@
 <launch>
-  <arg name="serial_no_camera1"    			default="843112071079"/> 			<!-- Note: Replace with actual serial number -->
-  <arg name="serial_no_camera2"    			default="832112071577"/> 			<!-- Note: Replace with actual serial number -->
-  <arg name="camera1"              			default="camera1"/>		<!-- Note: Replace with camera name -->
-  <arg name="camera2"              			default="camera2"/>		<!-- Note: Replace with camera name -->
+  <arg name="serial_no_camera1"    			default=""/> 			<!-- Forward camera serial no -->
+  <arg name="serial_no_camera2"    			default=""/> 			<!-- Backward camera serial no -->
+  <arg name="camera1"              			default="camera1"/>		
+  <arg name="camera2"              			default="camera2"/>		
   <arg name="tf_prefix_camera1"         default="$(arg camera1)"/>
   <arg name="tf_prefix_camera2"         default="$(arg camera2)"/>
   <arg name="initial_reset"             default="false"/>

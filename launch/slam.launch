@@ -1,6 +1,5 @@
 <launch>
-  <include file="$(find mavros)/launch/apm2.launch" />
-  <arg name="database_path"           default="/media/nvidia/e7ad1514-8ef4-4729-847b-6e33c4bdf764/rtabmap.db"/>
+  <arg name="database_path"           default="~/.ros/rtabmap.db"/>
   <arg name="compressed"              default="false"/>         <!-- If you want to subscribe to compressed image topics -->
   <arg name="rgb_image_transport"     default="compressed"/>    <!-- Common types: compressed, theora (see "rosrun image_transport list_transports") -->
   <arg name="depth_image_transport"   default="compressedDepth"/>  <!-- Common types: compressed, theora (see "rosrun image_transport list_transports") -->
