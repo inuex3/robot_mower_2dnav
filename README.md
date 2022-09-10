@@ -30,6 +30,10 @@ Download weight for yolov3.
 roslaunch robot_mower_2dnav sim_slam.launch
 ```
 
+# To do
+Upload weight for landmark detection.
+Create the simulation environment with AirSim.
+
 # Path planner
 This packege uses the waypoint generater from au-automow and heatmap  
 au-automow https://github.com/Auburn-Automow/au-automow  
