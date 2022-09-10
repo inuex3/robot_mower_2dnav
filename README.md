@@ -1,9 +1,10 @@
 # robot_mower_2dnav
 For a robot mower using rtabmap
 
-Youtube Video
+YouTube Video
 
-https://www.youtube.com/watch?v=h_7y-r1qzcE
+[![autonomous navigation for a robotic mower](https://user-images.githubusercontent.com/40222376/189482705-b24ad36b-9d6c-43f3-aeac-aa685ccd58ce.jpg)](https://www.youtube.com/watch?v=h_7y-r1qzcE)
+
 
 
 # Installation 
