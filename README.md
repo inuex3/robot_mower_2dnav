@@ -32,6 +32,7 @@ roslaunch robot_mower_2dnav sim_slam.launch
 
 # To do
 Upload weight for landmark detection.
+
 Create the simulation environment with AirSim.
 
 # Path planner
