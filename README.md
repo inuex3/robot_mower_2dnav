@@ -20,8 +20,12 @@ catkin_make
 ```
 
 # Localization from rosbag
-Download rosbag from here
+Download rosbag from here.
 https://drive.google.com/file/d/1l0IrpAPV1WoW48CIPvnGWnefiqSngt_b/view?usp=sharing
+
+Download weight for yolov3.
+(comming soon, now you can run slam without landmark correction.)
+
 ```
 roslaunch robot_mower_2dnav sim_slam.launch
 ```
