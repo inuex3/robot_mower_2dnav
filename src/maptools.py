@@ -14,7 +14,7 @@ from math import cos, sin, sqrt, atan, degrees, radians
 ##### Numpy-PIL Functions #####
 def image2array(im):
     if im.mode not in ("L", "F"):
-        raise ValueError, "can only convert single-layer images"
+        raise ValueError
     if im.mode == "L":
         a = np.fromstring(im.tostring(), dtype=np.uint8)
     else:
@@ -28,7 +28,7 @@ def array2image(a):
     elif a.typecode() == np.float32:
         mode = "F"
     else:
-        raise ValueError, "unsupported image mode %s"%(a.typecode())
+        raise ValueError
     return Image.fromstring(mode, (a.shape[1], a.shape[0]), a.tostring())
 
 
@@ -59,7 +59,7 @@ def rotation_tf_from_longest_edge(polygon):
     max_points = [(None, None),(None, None)]
     # Find the longest edge and the points that make it
     xs, ys = polygon.exterior.xy
-    points = zip(xs, ys)
+    points = list(zip(xs, ys))
     for i in range(len(points)):
         if i == len(points)-1:
             pair = (points[i],points[0])
@@ -197,8 +197,8 @@ if __name__ == '__main__':
     polygon_points = np.array(polygon.exterior)
     
     rt = rotation_tf_from_longest_edge(polygon)
-    print rt.angle
-    print rt.w
+    print(rt.angle)
+    print(rt.w)
     
     tf_points = rotate_to(polygon_points, rt)
     tf_polygon = ndarray2polygon(tf_points)

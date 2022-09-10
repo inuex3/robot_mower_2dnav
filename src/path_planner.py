@@ -130,17 +130,16 @@ class PathPlannerNode(object):
         rotation = rotation_tf_from_longest_edge(field_polygon)
         rotation = RotationTransform(rotation.angle + degrees)
         # Rotate the field polygon
-        print "Rotate the field polygon"
+        print("Rotate the field polygon")
         from maptools import rotate_polygon_from, rotate_polygon_to
         transformed_field_polygon = rotate_polygon_from(field_polygon, rotation)
         # Decompose the rotated field into a series of waypoints
         from coverage import decompose
-        print origin
+        print(origin)
         if origin is not None:
             point_mat = np.mat([[origin[0], origin[1], 0]], dtype='float64').transpose()
             origin = rotation.irm * point_mat
             origin = (origin[0,0], origin[1,0])
-            print(self.cut_spacing)
         transformed_path = decompose(transformed_field_polygon,
                                      origin=(origin[0], origin[1]),
                                      width=self.cut_spacing)
@@ -387,7 +386,7 @@ class PathPlannerNode(object):
         current_waypoint = self.path[current_waypoint_index]
         current_waypoint_status = self.path_status[current_waypoint_index]
         # If the status is visited
-        print current_waypoint
+        print(current_waypoint)
         if current_waypoint_status == 'visited':
             # This shouldn't happen...
             return True

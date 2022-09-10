@@ -10,6 +10,7 @@ from shapely.geometry import GeometryCollection
 from shapely.geos import TopologicalError
 import math
 import numpy as np
+import rospy
 from copy import deepcopy
 
 from pprint import pprint
@@ -40,18 +41,17 @@ def generate_intersections(poly, width):
             lines.append(bounded_line)
     return lines
 
-def sort_to(point, list):
+def sort_to(point, plist):
     "Sorts a set of points by distance to a point"
-    l = deepcopy(list)
-    l.sort(lambda x, y: cmp(x.distance(Point(*point)),
-                            y.distance(Point(*point))))
+    l = deepcopy(plist)
+    print(point)
+    #l.sort(key=lambda x: lambda y: cmp(x.distance(Point(*point)), y.distance(Point(*point))))
     return l
 
 def get_furthest(ps, origin):
     "Get a point along a line furthest away from a given point"
     orig_point = Point(*origin)
-    return sorted(ps, lambda x, y: cmp(orig_point.distance(Point(*x)),
-                                       orig_point.distance(Point(*y))))
+    return ps#sorted(ps, lambda x: lambda y: cmp(orig_point.distance(Point(*x)), orig_point.distance(Point(*y))))
 
 def order_points(lines, initial_origin):
     "Return a list of points in a given coverage path order"
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     
     from time import time; start = time()
     result = decompose(tf_polygon, origin, width=0.5)
-    print "Decomposition Time:", time()-start
+    print("Decomposition Time:", time()-start)
     
     tf_result = rotate_from(np.array(result), rt)
     
