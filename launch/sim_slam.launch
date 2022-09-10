@@ -96,11 +96,6 @@
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
     <rosparam command="load" file="$(find robot_mower_2dnav)/cfg/ekf_template.yaml" />
   </node>
-  <node name="gnss" pkg="robot_mower_2dnav" type="global_pose.py" respawn="false" output="screen"/> 
-  <node name="imu" pkg="robot_mower_2dnav" type="imu_republish.py" respawn="false" output="screen"/>  
-  <node name="visualize_path" pkg="robot_mower_2dnav" type="visualize_odometry_as_path.py" respawn="false" output="screen"/>  
-  <!-- Visualization RVIZ -->
- 
 
  
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
