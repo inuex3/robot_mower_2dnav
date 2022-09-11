@@ -1,6 +1,12 @@
 # robot_mower_2dnav
 For a robot mower using rtabmap
 
+YouTube Video
+
+[![autonomous navigation for a robotic mower](https://user-images.githubusercontent.com/40222376/189482705-b24ad36b-9d6c-43f3-aeac-aa685ccd58ce.jpg)](https://www.youtube.com/watch?v=h_7y-r1qzcE)
+
+
+
 # Installation 
 
 ```
@@ -20,11 +26,20 @@ catkin_make
 ```
 
 # Localization from rosbag
-Download rosbag from here
+Download rosbag from here.
 https://drive.google.com/file/d/1l0IrpAPV1WoW48CIPvnGWnefiqSngt_b/view?usp=sharing
 
-roslaunch robot_mower_2dnav sim_slam.launch
+Download weight for yolov3.
+(comming soon, now you can run slam without landmark correction.)
 
+```
+roslaunch robot_mower_2dnav sim_slam.launch
+```
+
+# To do
+Upload weight for landmark detection.
+
+Create the simulation environment with AirSim.
 
 # Path planner
 This packege uses the waypoint generater from au-automow and heatmap  
