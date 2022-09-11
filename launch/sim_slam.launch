@@ -97,10 +97,7 @@
     <rosparam command="load" file="$(find robot_mower_2dnav)/cfg/ekf_template.yaml" />
   </node>
 
- 
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
- 
+  <node name="start" pkg="robot_mower_2dnav" type="set_start.py" respawn="false" output="screen"/> 
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find robot_mower_2dnav)/cfg/rviz.rviz"/>
   <include file="$(find robot_mower_2dnav)/launch/obstacle.launch" />
 </launch>

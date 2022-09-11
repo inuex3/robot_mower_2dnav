@@ -56,25 +56,26 @@ def publish_goal(x, y, heading):
 def callback_odom(Odom):
     global n
     global start
-    gnss_odom = Odometry()
-    posi = PoseWithCovarianceStamped()
-    start = Odom
-    start.header.frame_id = "map"
-    e = tf.transformations.euler_from_quaternion((start.pose.pose.orientation.x, start.pose.pose.orientation.y, start.pose.pose.orientation.z, start.pose.pose.orientation.w))
-    heading = math.atan(e[2]) - math.pi/2
-    reset_pose(0.0, 0.0, 0.0, 0, 0, heading)
-    posi.header.stamp = rospy.Time.now()
-    start_pub.publish(start)
-    subscriber.unregister()
-    #rospy.sleep(1)
-    #raw_input("\nPress Enter to publish point..."     #print_obstacle_and_landmark_position(start.pose.pose.position.x, start.pose.pose.position.y, heading)
-    #print_obstacle_and_landmark_position(start.pose.pose.position.x, start.pose.pose.position.y, heading)
-    #print_obstacle_and_landmark_position(367960.3, 3955732.28737, 0)
-    raw_input("\nPress Enter to publish point...")
-    publish_goal(start.pose.pose.position.x, start.pose.pose.position.y, heading)
-    rospy.signal_shutdown('Quit')
+    if Odom.header.stamp.secs > 1566367518:
+        gnss_odom = Odometry()
+        posi = PoseWithCovarianceStamped()
+        start = Odom
+        start.header.frame_id = "map"
+        e = tf.transformations.euler_from_quaternion((start.pose.pose.orientation.x, start.pose.pose.orientation.y, start.pose.pose.orientation.z, start.pose.pose.orientation.w))
+        heading = math.atan(e[2]) - math.pi/2
+        reset_pose(0.0, 0.0, 0.0, 0, 0, heading)
+        posi.header.stamp = rospy.Time.now()
+        start_pub.publish(start)
+        subscriber.unregister()
+        #rospy.sleep(1)
+        #raw_input("\nPress Enter to publish point..."     #print_obstacle_and_landmark_position(start.pose.pose.position.x, start.pose.pose.position.y, heading)
+        # print_obstacle_and_landmark_position(start.pose.pose.position.x, start.pose.pose.position.y, heading)
+        #print_obstacle_and_landmark_position(367960.3, 3955732.28737, 0)
+        #raw_input("\nPress Enter to publish point...")
+        #publish_goal(start.pose.pose.position.x, start.pose.pose.position.y, heading)
+        rospy.signal_shutdown('Quit')
 
-subscriber = rospy.Subscriber('/utm', Odometry, callback_odom)
+subscriber = rospy.Subscriber('/gnss_odom', Odometry, callback_odom)
 
 def listen():
     rospy.spin()
