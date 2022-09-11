@@ -30,10 +30,13 @@ Download rosbag from here.
 https://drive.google.com/file/d/1l0IrpAPV1WoW48CIPvnGWnefiqSngt_b/view?usp=sharing
 
 Download weight for yolov3.
-(comming soon, now you can run slam without landmark correction.)
+https://drive.google.com/file/d/13GLpu-C4q3wrMYeovnqS2d8iY-RM0yv8/view?usp=sharing
+
+Put the downloaded weight in darknet_ros/darknet_ros/yolo_network_config/weights
 
 ```
 roslaunch robot_mower_2dnav sim_slam.launch
+rosbag play forwardbackward.bag --clock
 ```
 
 # To do
