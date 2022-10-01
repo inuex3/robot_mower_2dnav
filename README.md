@@ -40,7 +40,6 @@ rosbag play forwardbackward.bag --clock
 ```
 
 # To do
-Upload weight for landmark detection.
 
 Create the simulation environment with AirSim.
 
