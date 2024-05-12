@@ -1,5 +1,8 @@
 # robot_mower_2dnav
 For a robot mower using rtabmap
+Paper
+
+[Autonomous Navigation and Obstacle Avoidance in an Orchard Using Machine Vision Techniques for a Robotic Mower](https://www.jstage.jst.go.jp/article/eaef/15/4/15_87/_article)
 
 YouTube Video
 
